@@ -8,7 +8,7 @@
 #define SENSORS_4       0x45
 #define SWITCHES        0x46
 
-#define QUERY			0x61
+#define QUERY           0x61
 #define GET_SENSORS_1   0x62
 #define GET_SENSORS_2   0x63
 #define GET_SENSORS_3   0x64
@@ -17,4 +17,4 @@
 #define SET_SWITCHES    0x67
 
 #define HELLO           0x5A
-#define	RESET           0x7A
+#define RESET           0x7A
