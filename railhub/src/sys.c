@@ -31,7 +31,7 @@ void PORT_Init(void) {
 	XBR0 |= 0x04;    // Enable UART0
 	XBR2 |= 0x40;    // Enable crossbar and weak pull-ups
 	P0MDOUT |= 0x01; // enable TX0 as a push-pull output
-	P1MDOUT |= 0xFF; // enable P1-pins as push-pull output
+	P1MDOUT |= 0xFF; // enable P1/P2-pins as push-pull output
 	P2MDOUT |= 0xFF;
 }
 

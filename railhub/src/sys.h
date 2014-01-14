@@ -5,12 +5,12 @@
 // Fixed length types
 //-----------------------------------------------------------------------------
 
-typedef unsigned char 	uint8;		// 8 bits non signé
-typedef signed char 	int8;		// 8 bits signé
-typedef unsigned int	uint16;		// 16 bits non signé
-typedef signed int 		int16;		// 16 bits signé
-typedef unsigned long 	uint32;		// 32 bits non signé
-typedef signed long 	int32;		// 32 bits signé
+typedef unsigned char   uint8;
+typedef signed char     int8;
+typedef unsigned int    uint16;
+typedef signed int      int16;
+typedef unsigned long   uint32;
+typedef signed long     int32;
 
 //-----------------------------------------------------------------------------
 // 16-bit SFR Definitions for ‘F02x
@@ -34,8 +34,8 @@ sfr16 DAC1 = 0xd5; // DAC1 data
 //-----------------------------------------------------------------------------
 
 typedef bit bool;
-#define true	1
-#define false	0
+#define true  1
+#define false 0
 
 //-----------------------------------------------------------------------------
 // Prototypes

@@ -5,7 +5,7 @@
 
 #define SEND_DATA(optcode, payload) \
 	putchar(optcode); \
-	putchar(payload);putchar('\n');
+	putchar(payload);
 
 void handle_input() reentrant {
 	switch(_getkey()) {
