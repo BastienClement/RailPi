@@ -3,6 +3,8 @@
 #include "sys.h"
 #include <hub_opcodes.h>
 
+#define WATCHDOG WDTCN = 0xA5;
+
 #define SEND_DATA(optcode, payload) \
 	putchar(optcode); \
 	putchar(payload);
@@ -53,6 +55,9 @@ void watch_sensors() {
 		}
 	
 	while(1) {
+		WDTCN = 0xFF;
+		WATCHDOG;
+		
 		DO_SHADOW(switches, P2, SWITCHES,);
 		DO_SHADOW(sensors1, P4, SENSORS_1,);
 		DO_SHADOW(sensors2, P5, SENSORS_2,);
@@ -68,8 +73,7 @@ void watch_sensors() {
 // MAIN Routine
 //-----------------------------------------------------------------------------
 void main(void) {
-	WDTCN = 0xde; // disable watchdog timer
-	WDTCN = 0xad;
+	WATCHDOG;
 	
 	SYSCLK_Init(); // initialize oscillator
 	PORT_Init();   // initialize crossbar and GPIO
