@@ -3,9 +3,12 @@
 #include "sys.h"
 #include <hub_opcodes.h>
 
+uint16 keepalive = 0xFFFF;
+
 #define WATCHDOG WDTCN = 0xA5;
 
 #define SEND_DATA(opcode, payload) \
+	keepalive = 0xFFFF; \
 	putchar(opcode); \
 	putchar(payload);
 
@@ -62,6 +65,11 @@ void watch_sensors() {
 		DO_SHADOW(sensors1, P4, SENSORS_1,);
 		DO_SHADOW(sensors2, P5, SENSORS_2,);
 		DO_SHADOW(sensors3, P6, SENSORS_3,);
+		
+		if(--keepalive == 0x0000) {
+			putchar(KEEP_ALIVE);
+			keepalive = 0xFFFF;
+		}
 		
 		if(RI0 == 1) {
 			handle_input();
