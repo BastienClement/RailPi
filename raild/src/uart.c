@@ -107,6 +107,8 @@ static void uart_process(rbyte *buffer, int len) {
 					case SENSORS_3: state = UART_PROCESS_SENSORS3; break;
 					case SWITCHES:  state = UART_PROCESS_SWITCHES; break;
 
+					case KEEP_ALIVE: TRACE("KEEP_ALIVE"); break;
+
 					default:
 						printf("[UART]\t Unknown opcode from RailHub: 0x%02x\n", (unsigned char) c);
 				}
