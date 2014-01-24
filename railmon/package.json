@@ -1,0 +1,12 @@
+{
+  "name": "RailMon",
+  "version": "0.1.0",
+  "description": "A monitoring webapp for Raild",
+  "main": "app.js",
+  "dependencies": {
+    "express": "*"
+  },
+  "devDependencies": {},
+  "author": "",
+  "license": "MIT"
+}
