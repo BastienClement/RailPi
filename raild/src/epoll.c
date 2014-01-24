@@ -8,7 +8,7 @@ struct epoll_event *epoll_events;
 //
 // Creates a new epoll instance and registers UART fd and Server fd
 //
-void raild_epoll_create(int uart_fd, int serv_fd) {
+void raild_epoll_create() {
 	efd = epoll_create1(0);
 	if(efd < 0) {
 		perror("epoll_create");
@@ -16,9 +16,6 @@ void raild_epoll_create(int uart_fd, int serv_fd) {
 	}
 
 	epoll_events = calloc(MAX_EVENTS, sizeof(struct epoll_event));
-
-	raild_epoll_add(uart_fd, RAILD_FD_UART, NULL);
-	raild_epoll_add(serv_fd, RAILD_FD_SERVER, NULL);
 }
 
 //

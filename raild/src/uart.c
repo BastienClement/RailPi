@@ -61,6 +61,7 @@ int setup_uart() {
 	tcflush(uart0_filestream, TCIFLUSH);
 	tcsetattr(uart0_filestream, TCSANOW, &options);
 
+	raild_epoll_add(uart0_filestream, RAILD_FD_UART, NULL);
 	return uart0_filestream;
 
 	/*

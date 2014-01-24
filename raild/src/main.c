@@ -7,17 +7,17 @@ int main(int argc, char **argv) {
 
 	// --- SETUP ---
 
+	// Epoll
+	raild_epoll_create();
+
 	// UART
-	int uart_fd = setup_uart();
+	setup_uart();
 
 	// Lua
 	setup_lua((argc > 1) ? argv[1] : NULL);
 
 	// Socket
-	int serv_fd = setup_socket();
-
-	// Epoll
-	raild_epoll_create(uart_fd, serv_fd);
+	setup_socket();
 
 	printf("[RAILD]\t Setup completed!\n");
 	lua_onready();

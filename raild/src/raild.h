@@ -77,7 +77,7 @@ extern int tick_interval;
 // --- Epoll wrappers ---
 //
 extern struct epoll_event *epoll_events;
-void raild_epoll_create(int uart_fd, int serv_fd);
+void raild_epoll_create();
 void raild_epoll_add(int fd, epoll_type type, void *udata);
 int  raild_epoll_wait();
 epoll_udata *event_udata(int n);
