@@ -1,12 +1,13 @@
 #define OFF             0x00
 #define ON              0x01
 
+#define KEEP_ALIVE      0x2E
+
 #define SENSORS_1       0x41
 #define SENSORS_2       0x42
 #define SENSORS_3       0x43
 #define SWITCHES        0x44
 #define READY           0x45
-#define KEEP_ALIVE      0x46
 
 #define GET_SENSORS_1   0x61
 #define GET_SENSORS_2   0x62

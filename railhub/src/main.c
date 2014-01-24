@@ -30,10 +30,37 @@ void handle_input() reentrant {
 			break;
 		
 		//
+		// Keep-Alive
+		//
+		case KEEP_ALIVE:
+			keepalive = 0xFFFF;
+			putchar(KEEP_ALIVE);
+			break;
+		
+		//
 		// Reset
 		//
 		case RESET:
 			((void (code *)(void)) 0x0000)();
+	}
+}
+
+sbit led = P1^6;
+void dead() {
+	uint16 c = 0;
+	bit    b = 0;
+	
+	while(1) {
+		WATCHDOG;
+		
+		if(!++c) {
+			b = !b;
+			led = b;
+		}
+		
+		if(RI0 == 1) {
+			handle_input();
+		}
 	}
 }
 
@@ -55,6 +82,7 @@ void watch_sensors() {
 		if(_shadow = port, _shadow != shadow) { \
 			shadow = _shadow; \
 			action; \
+			WATCHDOG; \
 			SEND_DATA(opcode, shadow); \
 		}
 		
@@ -66,13 +94,13 @@ void watch_sensors() {
 		DO_SHADOW(sensors2, P5, SENSORS_2,);
 		DO_SHADOW(sensors3, P6, SENSORS_3,);
 		
-		if(--keepalive == 0x0000) {
-			putchar(KEEP_ALIVE);
-			keepalive = 0xFFFF;
-		}
-		
 		if(RI0 == 1) {
 			handle_input();
+		}
+		
+		if(--keepalive == 0x0000) {
+			// raild is dead
+			dead();
 		}
 	}
 }
@@ -87,6 +115,8 @@ void main(void) {
 	SYSCLK_Init(); // initialize oscillator
 	PORT_Init();   // initialize crossbar and GPIO
 	UART0_Init();  // initialize UART0
+	
+	led = 0;
 	
 	putchar(HELLO);
 	watch_sensors();
