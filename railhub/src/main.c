@@ -5,18 +5,12 @@
 
 #define WATCHDOG WDTCN = 0xA5;
 
-#define SEND_DATA(optcode, payload) \
-	putchar(optcode); \
+#define SEND_DATA(opcode, payload) \
+	putchar(opcode); \
 	putchar(payload);
 
 void handle_input() reentrant {
 	switch(_getkey()) {
-		// Query synchronization
-		case QUERY:
-			handle_input();
-			putchar(DONE);
-			break;
-		
 		//
 		// Sensors
 		//
@@ -47,15 +41,21 @@ void watch_sensors() {
 	uint8 sensors2 = P5;
 	uint8 sensors3 = P6;
 	
-	#define DO_SHADOW(shadow, port, optcode, action) \
+	SEND_DATA(SWITCHES,  P2);
+	SEND_DATA(SENSORS_1, P4);
+	SEND_DATA(SENSORS_2, P5);
+	SEND_DATA(SENSORS_3, P6);
+	
+	putchar(READY);
+	
+	#define DO_SHADOW(shadow, port, opcode, action) \
 		if(_shadow = port, _shadow != shadow) { \
 			shadow = _shadow; \
 			action; \
-			SEND_DATA(optcode, shadow); \
+			SEND_DATA(opcode, shadow); \
 		}
-	
+		
 	while(1) {
-		WDTCN = 0xFF;
 		WATCHDOG;
 		
 		DO_SHADOW(switches, P2, SWITCHES,);
@@ -73,6 +73,7 @@ void watch_sensors() {
 // MAIN Routine
 //-----------------------------------------------------------------------------
 void main(void) {
+	WDTCN = 0xFF;
 	WATCHDOG;
 	
 	SYSCLK_Init(); // initialize oscillator
