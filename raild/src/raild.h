@@ -7,6 +7,7 @@
 // Common libraries
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
@@ -48,7 +49,7 @@ typedef enum {
 // udata struct for epoll events
 typedef struct {
 	epoll_type  type;
-	void          *udata;
+	void       *udata;
 } epoll_udata;
 
 typedef unsigned char rbyte;
@@ -64,6 +65,8 @@ void setup_lua(const char *main);
 // --- State ---
 //
 void set_hub_state(rhub_port port, rbyte value);
+void set_hub_readiness(bool r);
+bool get_hub_readiness();
 
 //
 // --- Main ---
@@ -83,7 +86,7 @@ int event_fd(int n);
 //
 // --- UART ---
 //
-void uart_handle_event(int fd);
+void uart_handle_event(int fd, void *udata);
 
 //
 // --- Lua ---

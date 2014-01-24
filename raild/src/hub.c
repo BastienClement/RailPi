@@ -1,5 +1,7 @@
 #include "raild.h"
 
+static bool  hub_is_ready = false;
+
 static rbyte hub_sensors1 = 0x00;
 static rbyte hub_sensors2 = 0x00;
 static rbyte hub_sensors3 = 0x00;
@@ -25,4 +27,12 @@ void set_hub_state(rhub_port port, rbyte value) {
 	}
 
 	printf("%i set to 0x%02x\n", port, value);
+}
+
+void set_hub_readiness(bool r) {
+	hub_is_ready = r;
+}
+
+bool get_hub_readiness() {
+	return hub_is_ready;
 }

@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 			epoll_udata *udata = event_udata(i);
 			switch(udata->type) {
 				case RAILD_FD_UART:
-					uart_handle_event(event_fd(i));
+					uart_handle_event(event_fd(i), udata->udata);
 					break;
 
 				default:

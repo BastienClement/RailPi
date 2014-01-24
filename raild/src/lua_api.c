@@ -1,7 +1,7 @@
 #include "raild.h"
 
-#define API_DECL(name) static int lib_##name(lua_State *L)
-#define API_LINK(name) { #name, lib_##name }
+#define API_DECL(name) static int lualib_##name(lua_State *L)
+#define API_LINK(name) { #name, lualib_##name }
 
 //
 // exit()
@@ -14,10 +14,8 @@ API_DECL(exit) {
 //
 // tick_interval()
 //
-API_DECL(tick_interval) {
-	int interval = tick_interval;
-	tick_interval = (int) lua_tonumber(L, -1);
-	lua_pushnumber(L, interval);
+API_DECL(HubReady) {
+	lua_pushboolean(L, get_hub_readiness());
 	return 1;
 }
 
@@ -26,6 +24,6 @@ API_DECL(tick_interval) {
 //
 luaL_Reg raild_api[] = {
 	API_LINK(exit),
-	API_LINK(tick_interval),
+	API_LINK(HubReady),
 	{ NULL, NULL }
 };

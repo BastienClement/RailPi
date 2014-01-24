@@ -1,5 +1,12 @@
 #include "raild.h"
 
+#define UART_DEBUG  1
+#if UART_DEBUG
+#define TRACE(msg) printf("[UART]\t trace: " msg "\n");
+#else
+#define TRACE(msg)
+#endif
+
 static int   uart0_filestream = -1;
 static rbyte buffer[256];
 
@@ -92,9 +99,8 @@ static void uart_process(rbyte *buffer, int len) {
 		switch(state) {
 			case UART_PROCESS_DISPATCH:
 				switch(c) {
-					case HELLO:
-						printf("[UART]\t Got HELLO from RailHub!\n");
-						break;
+					case HELLO: TRACE("HELLO"); set_hub_readiness(false); break;
+					case READY: TRACE("READY"); set_hub_readiness(true);  break;
 
 					case SENSORS_1: state = UART_PROCESS_SENSORS1; break;
 					case SENSORS_2: state = UART_PROCESS_SENSORS2; break;
@@ -133,7 +139,7 @@ static void uart_process(rbyte *buffer, int len) {
 	}
 }
 
-void uart_handle_event(int fd) {
+void uart_handle_event(int fd, void *udata) {
 	int len = read(uart0_filestream, (void *) buffer, 256);
 
 	if(len == EAGAIN || len == 0) {
