@@ -4,11 +4,11 @@
 #include <hub_opcodes.h>
 
 uint16 keepalive = 0xFFFF;
+uint8  keepalive_timeout = 0;
 
 #define WATCHDOG WDTCN = 0xA5;
 
 #define SEND_DATA(opcode, payload) \
-	keepalive = 0xFFFF; \
 	putchar(opcode); \
 	putchar(payload);
 
@@ -33,8 +33,7 @@ void handle_input() reentrant {
 		// Keep-Alive
 		//
 		case KEEP_ALIVE:
-			keepalive = 0xFFFF;
-			putchar(KEEP_ALIVE);
+			keepalive_timeout = 0;
 			break;
 		
 		//
@@ -49,13 +48,15 @@ sbit led = P1^6;
 void dead() {
 	uint16 c = 0;
 	bit    b = 0;
+	uint8  z = 0;
 	
 	while(1) {
 		WATCHDOG;
 		
 		if(!++c) {
 			b = !b;
-			led = b;
+			z++;
+			led = (z % 10) > 5 ? 1 : 0;
 		}
 		
 		if(RI0 == 1) {
@@ -98,9 +99,13 @@ void watch_sensors() {
 			handle_input();
 		}
 		
-		if(--keepalive == 0x0000) {
-			// raild is dead
-			dead();
+		if(--keepalive == 0) {
+			if(++keepalive_timeout > 2) {
+				dead();
+			} else {
+				putchar(KEEP_ALIVE);
+				keepalive = 0x000FFFFF;
+			}
 		}
 	}
 }
