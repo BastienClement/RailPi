@@ -20,6 +20,12 @@ typedef enum {
 
 static uart_process_state state = UART_PROCESS_DISPATCH;
 
+static void uart_put(unsigned char data) {
+	static unsigned char buffer[1];
+	buffer[0] = data;
+	write(uart0_filestream, buffer, 1);
+}
+
 int setup_uart() {
 	printf("[UART]\t Init UART channel\n");
 
@@ -62,36 +68,9 @@ int setup_uart() {
 	tcsetattr(uart0_filestream, TCSANOW, &options);
 
 	raild_epoll_add(uart0_filestream, RAILD_FD_UART, NULL);
+
+	uart_put(RESET);
 	return uart0_filestream;
-
-	/*
-
-	//----- CHECK FOR ANY RX BYTES -----
-	while(uart0_filestream != -1)
-	{
-		// Read up to 255 characters from the port if they are there
-		unsigned char rx_buffer[256];
-		int rx_length = read(uart0_filestream, (void*)rx_buffer, 255);		//Filestream, buffer to store in, number of bytes to read (max)
-		if (rx_length < 0)
-		{
-			//An error occured (will occur if there are no bytes)
-		}
-		else if (rx_length == 0)
-		{
-			//No data waiting
-		}
-		else
-		{
-			//Bytes received
-			rx_buffer[rx_length] = '\0';
-			printf("%i bytes read : %s\n", rx_length, rx_buffer);
-		}
-	}
-
-
-
-	return 0;
-	*/
 }
 
 static void uart_process(rbyte *buffer, int len) {
@@ -108,7 +87,10 @@ static void uart_process(rbyte *buffer, int len) {
 					case SENSORS_3: state = UART_PROCESS_SENSORS3; break;
 					case SWITCHES:  state = UART_PROCESS_SWITCHES; break;
 
-					case KEEP_ALIVE: TRACE("KEEP_ALIVE"); break;
+					case KEEP_ALIVE:
+						TRACE("KEEP_ALIVE");
+						uart_put(KEEP_ALIVE);
+					break;
 
 					default:
 						printf("[UART]\t Unknown opcode from RailHub: 0x%02x\n", (unsigned char) c);
