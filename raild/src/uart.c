@@ -13,6 +13,8 @@
 static int   uart0_filestream = -1;
 static rbyte buffer[256];
 
+static bool keep_alive_missing = false;
+
 typedef enum {
 	UART_PROCESS_DISPATCH,
 	UART_PROCESS_SENSORS1,
@@ -27,6 +29,11 @@ static void uart_put(unsigned char data) {
 	static unsigned char buffer[1];
 	buffer[0] = data;
 	write(uart0_filestream, buffer, 1);
+}
+
+void uart_reset() {
+	state = UART_PROCESS_DISPATCH;
+	uart_put(RESET);
 }
 
 int setup_uart() {
@@ -70,9 +77,10 @@ int setup_uart() {
 	tcflush(uart0_filestream, TCIFLUSH);
 	tcsetattr(uart0_filestream, TCSANOW, &options);
 
-	raild_epoll_add(uart0_filestream, RAILD_FD_UART, NULL);
+	raild_epoll_add(uart0_filestream, RAILD_FD_UART);
+	raild_timer_create(500, 500, RAILD_FD_UART);
 
-	uart_put(RESET);
+	uart_reset();
 	return uart0_filestream;
 }
 
@@ -91,7 +99,7 @@ static void uart_process(rbyte *buffer, int len) {
 					case SWITCHES:  state = UART_PROCESS_SWITCHES; break;
 
 					case KEEP_ALIVE:
-						TRACE("KEEP_ALIVE");
+						keep_alive_missing = false;
 						uart_put(KEEP_ALIVE);
 					break;
 
@@ -127,7 +135,21 @@ static void uart_process(rbyte *buffer, int len) {
 	}
 }
 
-void uart_handle_event(int fd, void *udata) {
+void uart_handle_event(epoll_udata *udata) {
+	if(udata->timer) {
+		if(get_hub_readiness()) {
+			if(!keep_alive_missing) {
+				keep_alive_missing = true;
+			} else {
+				printf("[UART]\t RailHub gone!\n");
+				set_hub_readiness(false);
+			}
+		} else {
+			uart_reset();
+		}
+		return;
+	}
+
 	int len = read(uart0_filestream, (void *) buffer, 256);
 
 	if(len == EAGAIN || len == 0) {
