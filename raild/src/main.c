@@ -1,7 +1,5 @@
 #include "raild.h"
 
-int tick_interval = 1000;
-
 int main(int argc, char **argv) {
 	printf("[RAILD]\t Starting raild...\n");
 
@@ -44,17 +42,6 @@ int main(int argc, char **argv) {
 					exit(1);
 			}
 		}
-
-		/*int newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &cli_addr_len);
-		FILE* fd = fdopen(newsockfd, "w");
-		if(newsockfd < 0)
-		{
-			perror("ERROR on accept");
-			exit(1);
-		}
-		fputs("Hello world!\n", fd);
-		fclose(fd);
-		close(newsockfd);*/
 	}
 
 	return 0;

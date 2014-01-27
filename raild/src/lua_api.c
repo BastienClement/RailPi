@@ -1,4 +1,9 @@
 #include "raild.h"
+#include <luajit-2.0/lua.h>
+#include <luajit-2.0/lualib.h>
+#include <luajit-2.0/lauxlib.h>
+
+extern lua_State *L;
 
 #define API_DECL(name) static int lualib_##name(lua_State *L)
 #define API_LINK(name) { #name, lualib_##name }
@@ -27,3 +32,10 @@ luaL_Reg raild_api[] = {
 	API_LINK(HubReady),
 	{ NULL, NULL }
 };
+
+//
+// Register the raild lua library
+//
+void lualib_register() {
+	luaL_register(L, NULL, raild_api);
+}

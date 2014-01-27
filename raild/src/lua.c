@@ -1,7 +1,10 @@
 #include "raild.h"
+#include <luajit-2.0/lua.h>
+#include <luajit-2.0/lualib.h>
+#include <luajit-2.0/lauxlib.h>
 
 // The Lua VM
-static lua_State *L;
+lua_State *L;
 
 //
 // Safely run a Lua function
@@ -28,7 +31,7 @@ void setup_lua(const char *main) {
 
 	// Load the Raild API
 	lua_pushvalue(L, LUA_GLOBALSINDEX);
-	luaL_register(L, NULL, raild_api);
+	lualib_register(L);
 	lua_pop(L, 1);
 
 	// Load the main script if provided

@@ -5,28 +5,16 @@
 // --- INCLUDES ---
 //
 // Common libraries
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <sys/epoll.h>
 
-// Socket server
-#include <sys/socket.h>
-#include <netinet/in.h>
-
-// UART interface
-#include <fcntl.h>
-#include <termios.h>
-#include <hub_opcodes.h>
-
-// Lua
-#include <luajit-2.0/lua.h>
-#include <luajit-2.0/lualib.h>
-#include <luajit-2.0/lauxlib.h>
+// debug
+#include <time.h>
 
 //
 // --- Types ---
@@ -91,7 +79,7 @@ void uart_handle_event(int fd, void *udata);
 //
 // --- Lua ---
 //
-extern luaL_Reg raild_api[];
 int lua_onready();
+void lualib_register();
 
 #endif

@@ -1,4 +1,7 @@
 #include "raild.h"
+#include <fcntl.h>
+#include <termios.h>
+#include <hub_opcodes.h>
 
 #define UART_DEBUG  1
 #if UART_DEBUG

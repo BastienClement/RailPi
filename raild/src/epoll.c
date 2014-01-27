@@ -1,6 +1,8 @@
 #include "raild.h"
+#include <sys/epoll.h>
 
-#define MAX_EVENTS 64
+#define WAIT_TIMEOUT 1000
+#define MAX_EVENTS   64
 
 static int efd;
 struct epoll_event *epoll_events;
@@ -42,7 +44,7 @@ void raild_epoll_add(int fd, epoll_type type, void *ptr) {
 // Simple wrapper around epoll wait
 //
 int raild_epoll_wait() {
-	return epoll_wait(efd, epoll_events, MAX_EVENTS, 1000);
+	return epoll_wait(efd, epoll_events, MAX_EVENTS, WAIT_TIMEOUT);
 }
 
 //

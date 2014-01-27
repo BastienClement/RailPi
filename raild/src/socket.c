@@ -1,4 +1,6 @@
 #include "raild.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 int setup_socket() {
 	printf("[API]\t Init API server\n");
