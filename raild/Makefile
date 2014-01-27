@@ -3,7 +3,8 @@ CFLAGS=-I../shared/
 LDFLAGS=-lluajit-5.1
 EXEC=raild
 SRC= $(wildcard src/*.c)
-OBJ= $(SRC:.c=.o)
+SRC_LUA= $(wildcard src/*.lua)
+OBJ= $(SRC:.c=.o) $(SRC_LUA:.lua=.lo)
 
 all: $(EXEC)
 
@@ -13,7 +14,10 @@ raild: $(OBJ)
 %.o: %.c src/raild.h
 	$(CC) -o $@ -c $< $(CFLAGS)
 
+%.lo: %.lua
+	objcopy -I binary -O elf32-littlearm -B arm $< $@
+
 .PHONY: clean
 
 clean:
-	rm -rf src/*.o
+	rm -rf src/*.o src/*.lo

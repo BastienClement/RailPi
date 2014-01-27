@@ -3,6 +3,9 @@
 #include <luajit-2.0/lualib.h>
 #include <luajit-2.0/lauxlib.h>
 
+extern char _binary_src_stdlib_lua_start;
+extern char _binary_src_stdlib_lua_size;
+
 // The Lua VM
 lua_State *L;
 
@@ -33,6 +36,10 @@ void setup_lua(const char *main) {
 	lua_pushvalue(L, LUA_GLOBALSINDEX);
 	lualib_register(L);
 	lua_pop(L, 1);
+
+	// TODO: comment
+	luaL_loadbuffer(L, &_binary_src_stdlib_lua_start, (size_t) &_binary_src_stdlib_lua_size, "stdlib.lua");
+	lua_pcall(L, 0, 0, 0);
 
 	// Load the main script if provided
 	if(main) {
