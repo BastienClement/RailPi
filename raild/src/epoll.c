@@ -23,35 +23,35 @@ void raild_epoll_create() {
 //
 // Adds a new fd to the epoll instance
 //
-epoll_udata *raild_epoll_add(int fd, epoll_type type) {
-	epoll_udata *udata = malloc(sizeof(epoll_udata));
-	udata->self  = udata;
-	udata->fd    = fd;
-	udata->type  = type;
-	udata->timer = false;
-	udata->n     = 0;
-	udata->ptr   = 0;
+raild_event *raild_epoll_add(int fd, raild_event_type type) {
+	raild_event *event = malloc(sizeof(raild_event));
+	event->self  = event;
+	event->fd    = fd;
+	event->type  = type;
+	event->timer = false;
+	event->n     = 0;
+	event->ptr   = 0;
 
-	struct epoll_event event;
-	event.data.fd  = fd;
-	event.data.ptr = udata;
-	event.events   = EPOLLIN;
+	struct epoll_event epoll_ev;
+	epoll_ev.data.fd  = fd;
+	epoll_ev.data.ptr = event;
+	epoll_ev.events   = EPOLLIN;
 
-	int s = epoll_ctl(efd, EPOLL_CTL_ADD, fd, &event);
+	int s = epoll_ctl(efd, EPOLL_CTL_ADD, fd, &epoll_ev);
 	if(s < 0) {
 		perror("epoll_ctl");
 		exit(1);
 	}
 
-	return udata;
+	return event;
 }
 
 //
 // Removes a fd from the event loop
 //
-void raild_epoll_rem(epoll_udata *udata) {
-	epoll_ctl(efd, EPOLL_CTL_DEL, udata->fd, 0);
-	free(udata->self);
+void raild_epoll_rem(raild_event *event) {
+	epoll_ctl(efd, EPOLL_CTL_DEL, event->fd, 0);
+	free(event->self);
 }
 
 //
@@ -64,6 +64,6 @@ int raild_epoll_wait() {
 //
 // Returns the udata struct for the nth event
 //
-epoll_udata *event_udata(int n) {
-	return (epoll_udata *) epoll_events[n].data.ptr;
+raild_event *event_data(int n) {
+	return (raild_event *) epoll_events[n].data.ptr;
 }

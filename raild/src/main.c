@@ -32,25 +32,29 @@ int main(int argc, char **argv) {
 
 		for(int i = 0; i < n; i++) {
 			// Extract fd and udata from the event
-			epoll_udata *udata = event_udata(i);
+			raild_event *event = event_data(i);
 
 			// Add time informations
-			udata->time = tp;
+			event->time = tp;
 
 			// Filter function for timers
-			if(udata->timer) {
+			if(event->timer) {
 				uint64_t times;
-				if(read(udata->fd, &times, 8) != 8) {
+				if(read(event->fd, &times, 8) != 8) {
 					continue;
 				} else {
-					udata->times = (int) times;
+					event->times = (int) times;
 				}
 			}
 
 			// Dispatch events
-			switch(udata->type) {
-				case RAILD_FD_UART:
-					uart_handle_event(udata);
+			switch(event->type) {
+				case RAILD_EV_UART:
+					uart_handle_event(event);
+					break;
+
+				case RAILD_EV_LUA_TIMER:
+					lua_handle_timer(event);
 					break;
 
 				default:
@@ -59,8 +63,8 @@ int main(int argc, char **argv) {
 			}
 
 			// Auto delete feature
-			if(udata->timer) {
-				raild_timer_autodelete(udata);
+			if(event->timer) {
+				raild_timer_autodelete(event);
 			}
 		}
 	}

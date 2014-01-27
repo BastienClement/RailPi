@@ -28,6 +28,6 @@ int setup_socket() {
 		exit(1);
 	}
 
-	raild_epoll_add(sockfd, RAILD_FD_SERVER);
+	raild_epoll_add(sockfd, RAILD_EV_SERVER);
 	return sockfd;
 }

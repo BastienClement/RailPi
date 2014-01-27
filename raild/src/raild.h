@@ -19,13 +19,6 @@
 // --- Types ---
 //
 
-// fd type indicator for epoll events
-typedef enum {
-	RAILD_FD_UART,
-	RAILD_FD_SERVER,
-	RAILD_FD_SOCKET
-} epoll_type;
-
 typedef enum {
 	RHUB_SENSORS1,
 	RHUB_SENSORS2,
@@ -33,17 +26,25 @@ typedef enum {
 	RHUB_SWITCHES
 } rhub_port;
 
+// fd type indicator for epoll events
+typedef enum {
+	RAILD_EV_UART,
+	RAILD_EV_SERVER,
+	RAILD_EV_SOCKET,
+	RAILD_EV_LUA_TIMER,
+} raild_event_type;
+
 // udata struct for epoll events
-typedef struct epoll_udata_t {
-	struct epoll_udata_t *self;
+typedef struct raild_event_t {
+	struct raild_event_t *self;
 	int                   fd;
-	epoll_type            type;
+	raild_event_type      type;
 	struct timespec       time;
 	bool                  timer;
 	int                   times;
 	uint32_t              n;
 	void                 *ptr;
-} epoll_udata;
+} raild_event;
 
 typedef unsigned char rbyte;
 
@@ -72,28 +73,29 @@ extern int tick_interval;
 extern struct epoll_event *epoll_events;
 
 void         raild_epoll_create();
-epoll_udata *raild_epoll_add(int fd, epoll_type type);
-void         raild_epoll_rem(epoll_udata *udata);
+raild_event *raild_epoll_add(int fd, raild_event_type type);
+void         raild_epoll_rem(raild_event *udata);
 int          raild_epoll_wait();
-epoll_udata *event_udata(int n);
+raild_event *event_data(int n);
 
 //
 // --- Timers ---
 //
-int  raild_timer_create(int initial, int interval, epoll_type type);
-void raild_timer_delete(int tid);
-void raild_timer_autodelete(epoll_udata *udata);
+raild_event *raild_timer_create(int initial, int interval, raild_event_type type);
+void         raild_timer_delete(raild_event *event);
+void         raild_timer_autodelete(raild_event *event);
 
 //
 // --- UART ---
 //
 void uart_reset();
-void uart_handle_event(epoll_udata *udata);
+void uart_handle_event(raild_event *udata);
 
 //
 // --- Lua ---
 //
 int  lua_onready();
+void lua_handle_timer(raild_event *event);
 void lualib_register();
 
 #endif
