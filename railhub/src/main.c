@@ -9,6 +9,7 @@ uint8  keepalive_timeout = 0;
 #define WATCHDOG WDTCN = 0xA5;
 
 #define SEND_DATA(opcode, payload) \
+	WATCHDOG; \
 	putchar(opcode); \
 	putchar(payload);
 
@@ -25,8 +26,11 @@ void handle_input() reentrant {
 		// Switches manipulation
 		//
 		case GET_SWITCHES: SEND_DATA(SWITCHES, P2); break;
-		case SET_SWITCHES:
-			P2 = _getkey();
+		case SET_SWITCH_ON:
+			P2 |= (1 << _getkey());
+			break;
+		case SET_SWITCH_OFF:
+			P2 &= ~(1 << _getkey());
 			break;
 		
 		//
@@ -104,7 +108,7 @@ void watch_sensors() {
 				dead();
 			} else {
 				putchar(KEEP_ALIVE);
-				keepalive = 0x000FFFFF;
+				keepalive = 0xFFFF;
 			}
 		}
 	}
