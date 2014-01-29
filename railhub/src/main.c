@@ -10,8 +10,14 @@ uint8  keepalive_timeout = 0;
 
 #define SEND_DATA(opcode, payload) \
 	WATCHDOG; \
-	putchar(opcode); \
-	putchar(payload);
+	putchar_raw(opcode); \
+	putchar_raw(payload);
+
+char putchar_raw(char c)  {
+	while (!TI0);
+	TI0 = 0;
+	return (SBUF0 = c);
+}
 
 void handle_input() reentrant {
 	switch(_getkey()) {
@@ -26,9 +32,15 @@ void handle_input() reentrant {
 		// Switches manipulation
 		//
 		case GET_SWITCHES: SEND_DATA(SWITCHES, P2); break;
+		
+		case SET_SWITCHES:
+			P2 = _getkey();
+			break;
+		
 		case SET_SWITCH_ON:
 			P2 |= (1 << _getkey());
 			break;
+		
 		case SET_SWITCH_OFF:
 			P2 &= ~(1 << _getkey());
 			break;
@@ -76,12 +88,11 @@ void watch_sensors() {
 	uint8 sensors2 = P5;
 	uint8 sensors3 = P6;
 	
-	SEND_DATA(SWITCHES,  P2);
 	SEND_DATA(SENSORS_1, P4);
 	SEND_DATA(SENSORS_2, P5);
 	SEND_DATA(SENSORS_3, P6);
 	
-	putchar(READY);
+	putchar_raw(READY);
 	
 	#define DO_SHADOW(shadow, port, opcode, action) \
 		if(_shadow = port, _shadow != shadow) { \
@@ -107,7 +118,7 @@ void watch_sensors() {
 			if(++keepalive_timeout > 2) {
 				dead();
 			} else {
-				putchar(KEEP_ALIVE);
+				putchar_raw(KEEP_ALIVE);
 				keepalive = 0xFFFF;
 			}
 		}
@@ -126,7 +137,8 @@ void main(void) {
 	UART0_Init();  // initialize UART0
 	
 	led = 0;
+	P2  = 0x00;
 	
-	putchar(HELLO);
+	putchar_raw(HELLO);
 	watch_sensors();
 }
