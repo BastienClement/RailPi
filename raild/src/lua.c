@@ -3,13 +3,28 @@
 #include <luajit-2.0/lualib.h>
 #include <luajit-2.0/lauxlib.h>
 
-extern char _binary_src_stdlib_lua_start;
-extern char _binary_src_stdlib_lua_size;
+/*
+ * Everything Lua-related
+ *
+ * Lua is used as an embedded scripting language to control the circuit logic.
+ *
+ * The C-side of Raild handles everything related to low-level communication
+ * with RailHub and TCP/IP API clients and emits events to Lua code to notify
+ * changes. Lua scripts can then act accordingly.
+ */
 
+// Black-magic for the embedded stdlib.lua file
+// This Lua script is embbeded inside the Raild executable file at compile time
+extern char _binary_src_stdlib_lua_start; // Pointer to the first caracter of the Lua script
+extern char _binary_src_stdlib_lua_size;  // This variable address is the length of the script
+
+// Declare a new Lua CFunction to be called from Lua code
 #define API_DECL(name) static int lualib_##name(lua_State *L)
+
+// Creates the library entry for loading every functions into Lua state
 #define API_LINK(name) { #name, lualib_##name }
 
-// The Lua VM
+// The Lua VM object
 lua_State *L;
 
 //
@@ -40,7 +55,10 @@ void setup_lua(const char *main) {
 	lualib_register(L);
 	lua_pop(L, 1);
 
-	// TODO: comment
+	// Black-magic
+	// This load the embedded stdlib.lua file
+	// As previously noted, the address (and not the value) of the ..._size
+	// variable is the length of the embedded script file.
 	if(luaL_loadbuffer(L, &_binary_src_stdlib_lua_start, (size_t) &_binary_src_stdlib_lua_size, "stdlib") != 0) {
 		printf("load: %s\n", lua_tostring(L, -1));
 		exit(1);
@@ -63,8 +81,11 @@ void setup_lua(const char *main) {
 // Timer handler
 //
 void lua_handle_timer(raild_event *event) {
+	// Fetch the function associated with this timer
 	lua_pushlightuserdata(L, event);
 	lua_gettable(L, LUA_REGISTRYINDEX);
+
+	// Call it
 	call(0, 0);
 }
 
@@ -72,7 +93,11 @@ void lua_handle_timer(raild_event *event) {
 // Prepares an event for dispatching
 //
 static int event_prepare(const char *ev) {
+	// Fetch the event function from global variables
 	lua_getfield(L, LUA_GLOBALSINDEX, ev);
+
+	// lua_getfield returned nil
+	// This function does not exist
 	if(lua_isnil(L, -1)) {
 		lua_pop(L, 1);
 		return 0;
@@ -82,18 +107,32 @@ static int event_prepare(const char *ev) {
 }
 
 //
+// --- Lua Events ---
+//
+
+//
 // Ready event
+// Fired ever time the RailHub sends a READY opcode
 //
 int lua_onready() {
 	if(!event_prepare("OnReady")) return 0;
 	return call(0, 0);
 }
 
+//
+// Disconnect event
+// Fired when RailHub failed to send keep-alive opcode and
+// is now considered disconnected
+//
 int lua_ondisconnect() {
 	if(!event_prepare("OnDisconnect")) return 0;
 	return call(0, 0);
 }
 
+//
+// Sensor changed event
+// Fired when any of the 24 sensors changes state
+//
 int lua_onsensorchanged(int sensorid, bool state) {
 	if(!event_prepare("OnSensorChanged")) return 0;
 	lua_pushnumber(L, sensorid);
@@ -101,6 +140,10 @@ int lua_onsensorchanged(int sensorid, bool state) {
 	return call(2, 0);
 }
 
+//
+// Switch changed event
+// Fired when any of the 8 switches changes state
+//
 int lua_onswitchchanged(int switchid, bool state) {
 	if(!event_prepare("OnSwitchChanged")) return 0;
 	lua_pushnumber(L, switchid);
@@ -110,10 +153,12 @@ int lua_onswitchchanged(int switchid, bool state) {
 
 //
 // --- LUA C API ---
+// C functions to be called by Lua code
 //
 
 //
 // exit()
+// A way for Lua scripts to kill the whole process
 //
 API_DECL(exit) {
 	printf("[LUA]\t Script killed the main process!\n");
@@ -122,6 +167,7 @@ API_DECL(exit) {
 
 //
 // HubReady()
+// Returns the readiness of RailHub
 //
 API_DECL(HubReady) {
 	lua_pushboolean(L, get_hub_readiness());
@@ -130,8 +176,10 @@ API_DECL(HubReady) {
 
 //
 // TimerCreate(initial, interval, fn)
-//
-// Creates a new timer
+// Creates a new timer ticking after 'initial' millisecond and the
+// every 'interval' millisecond until canceled
+// If interval == 0, this is a one-time timer automatically canceled
+// after its first tick
 //
 API_DECL(CreateTimer) {
 	// Check arguments
@@ -154,7 +202,6 @@ API_DECL(CreateTimer) {
 
 //
 // TimerCancel(timer)
-//
 // Cancels the timer
 //
 API_DECL(CancelTimer) {
@@ -179,6 +226,10 @@ API_DECL(CancelTimer) {
 	return 0;
 }
 
+//
+// GetSwitch(switch_id)
+// Return the cached state for the requested switch
+//
 API_DECL(GetSwitch) {
 	int sid = luaL_checknumber(L, 1);
 	if(sid < 1 || sid > 8) {
@@ -189,6 +240,10 @@ API_DECL(GetSwitch) {
 	return 1;
 }
 
+//
+// SetSwitch(switch_id, new_state)
+// Request a switch state modification
+//
 API_DECL(SetSwitch) {
 	int  sid   = luaL_checknumber(L, 1);
 	bool state = lua_toboolean(L, 2);
@@ -206,6 +261,10 @@ API_DECL(SetSwitch) {
 	return 0;
 }
 
+//
+// GetSensor(sensor_id)
+// Return the cached state for the requested sensor
+//
 API_DECL(GetSensor) {
 	int sid = luaL_checknumber(L, 1);
 

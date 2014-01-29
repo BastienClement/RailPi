@@ -1,14 +1,36 @@
 #include "raild.h"
 
+/*
+ * RailHub interface for Raild
+ *
+ * This file provides the RailHub ports cache.
+ *
+ * Since the communication with RailHub is asynchronous, everything
+ * is kept in Raild memory and used when requested by Lua scripts.
+ *
+ * Every times something changes on one of the RailHub ports, Raild
+ * is notified and this cache is updated.
+ */
+
+// Flag indicating if RailHub is connected and in Ready state
 static bool  hub_is_ready = false;
 
+// Cache for every sensors and switches
 static rbyte hub_sensors1 = 0x00;
 static rbyte hub_sensors2 = 0x00;
 static rbyte hub_sensors3 = 0x00;
 static rbyte hub_switches = 0x00;
 
+//
+// Update the Raild cache with fresh informations from RailHub
+// This function also fires associated Lua events
+//
 void set_hub_state(rhub_port port, rbyte value) {
+	// The number of the first sensor on this port
+	// -1 in the case of switches
 	int sensors_base;
+
+	// Pointer to the appropriate cache value
 	rbyte *shadow;
 
 	switch(port) {
@@ -33,23 +55,36 @@ void set_hub_state(rhub_port port, rbyte value) {
 			break;
 	}
 
+	// Only send events when RailHub is ready
+	// Prevents a lot of event flood during synchronization with RailHub
 	if(hub_is_ready) {
+		// Check every bit on this port
 		for(int i = 0; i < 8; i++) {
 			int sensor_state = value & (1 << i);
 			int shadow_state = *shadow & (1 << i);
+
+			// If the bit received is different from the cached one
 			if(sensor_state != shadow_state) {
 				if(sensors_base < 0) {
+					// -1 base is used to identify the switches-port
 					lua_onswitchchanged(i, !!sensor_state);
 				} else {
+					// ... else it's a regular sensors-port
 					lua_onsensorchanged(sensors_base + i, !!sensor_state);
 				}
 			}
 		}
 	}
 
+	// Update the cache
+	// Note: since the cached value is only updated after the event execution,
+	// Lua scripts can still access the old value with the GetSensor() function
 	*shadow = value;
 }
 
+//
+// Returns the cached value for one of the RailHub port
+//
 rbyte get_hub_state(rhub_port port) {
 	switch(port) {
 		case RHUB_SENSORS1: return hub_sensors1;
@@ -59,6 +94,9 @@ rbyte get_hub_state(rhub_port port) {
 	}
 }
 
+//
+// Updates the ready state of RailHub and fires the corresponding event
+//
 void set_hub_readiness(bool r) {
 	hub_is_ready = r;
 	if(r) {
@@ -68,6 +106,9 @@ void set_hub_readiness(bool r) {
 	}
 }
 
+//
+// Returns the RailHub ready state
+//
 bool get_hub_readiness() {
 	return hub_is_ready;
 }

@@ -1,5 +1,16 @@
 #include "raild.h"
 
+/*
+ * Raild event loop
+ *
+ * The event loop is responsible for waiting, gathering and dispatching
+ * events to other modules of raild.
+ *
+ * Because everything is built around epoll() feature available in Linux
+ * kernels, every manageable events have to expose a file description
+ * interface as to be compatible with epoll.
+ */
+
 int main(int argc, char **argv) {
 	printf("[RAILD]\t Starting raild...\n");
 
@@ -19,27 +30,36 @@ int main(int argc, char **argv) {
 
 	printf("[RAILD]\t Setup completed!\n");
 
+	// Main event loop
+	// Spinning during the entire life of raild
 	while(1) {
+		// Wait for events to handle
 		int n = raild_epoll_wait();
 		if(n < 1) {
 			// Event loop idle
+			// Just wait again
 			continue;
 		}
 
+		// Fetching the current time
 		struct timespec tp;
-		clock_gettime(CLOCK_MONOTONIC, &tp);
+		clock_gettime(CLOCK_REALTIME, &tp);
 
+		// Handle each event one by one
 		for(int i = 0; i < n; i++) {
-			// Extract fd and udata from the event
+			// Extract the raild_event struct from the event
 			raild_event *event = event_data(i);
 
 			// Add time informations
 			event->time = tp;
 
 			// Filter function for timers
+			// Timers fds are automatically read and their 'proc'
+			// count is stored in the 'times' field of the raild_event
 			if(event->timer) {
 				uint64_t times;
 				if(read(event->fd, &times, 8) != 8) {
+					// This event did not really happened. Just ignore it.
 					continue;
 				} else {
 					event->times = (int) times;
@@ -61,7 +81,7 @@ int main(int argc, char **argv) {
 					exit(1);
 			}
 
-			// Auto delete feature
+			// Auto delete feature for non-repeatable timer events
 			if(event->timer) {
 				raild_timer_autodelete(event);
 			}

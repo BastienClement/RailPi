@@ -19,6 +19,7 @@
 // --- Types ---
 //
 
+// List of ports physically available on RailHub
 typedef enum {
 	RHUB_SENSORS1,
 	RHUB_SENSORS2,
@@ -28,24 +29,27 @@ typedef enum {
 
 // fd type indicator for epoll events
 typedef enum {
-	RAILD_EV_UART,
-	RAILD_EV_SERVER,
-	RAILD_EV_SOCKET,
-	RAILD_EV_LUA_TIMER,
+	RAILD_EV_UART,      // New data available to read from RailHub
+	RAILD_EV_SERVER,    // Events from the TCP/IP server
+	RAILD_EV_SOCKET,    // Events from a TCP/IP client
+	RAILD_EV_LUA_TIMER, // Timer created by Lua scripts
 } raild_event_type;
 
-// udata struct for epoll events
+// user data struct for epoll events
+// This struct holds various informations about an event and
+// is the main object passed around when dealing with events
+// and epoll.
 typedef struct raild_event_t {
-	struct raild_event_t *self;
-	int                   fd;
-	raild_event_type      type;
-	struct timespec       time;
-	bool                  timer;
-	int                   times;
-	uint32_t              n;
-	void                 *ptr;
+	int                   fd;    // The associated file descriptor
+	raild_event_type      type;  // Event type flag
+	struct timespec       time;  // Event trigger timestamp
+	bool                  timer; // TRUE if this event is a timer
+	int                   times; // Number of times this timer was triggered since the last event
+	int                   n;     // User-defined number
+	void                 *ptr;   // User-defined pointer
 } raild_event;
 
+// A single byte of 8-bit used for communication with RailHub
 typedef unsigned char rbyte;
 
 //
@@ -62,11 +66,6 @@ void  set_hub_state(rhub_port port, rbyte value);
 rbyte get_hub_state(rhub_port port);
 void  set_hub_readiness(bool r);
 bool  get_hub_readiness();
-
-//
-// --- Main ---
-//
-extern int tick_interval;
 
 //
 // --- Epoll wrappers ---
