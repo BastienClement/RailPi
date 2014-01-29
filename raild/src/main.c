@@ -18,7 +18,6 @@ int main(int argc, char **argv) {
 	setup_socket();
 
 	printf("[RAILD]\t Setup completed!\n");
-	lua_onready();
 
 	while(1) {
 		int n = raild_epoll_wait();

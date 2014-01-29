@@ -41,8 +41,11 @@ void setup_lua(const char *main) {
 	lua_pop(L, 1);
 
 	// TODO: comment
-	luaL_loadbuffer(L, &_binary_src_stdlib_lua_start, (size_t) &_binary_src_stdlib_lua_size, "stdlib.lua");
-	lua_pcall(L, 0, 0, 0);
+	if(luaL_loadbuffer(L, &_binary_src_stdlib_lua_start, (size_t) &_binary_src_stdlib_lua_size, "stdlib") != 0) {
+		printf("load: %s\n", lua_tostring(L, -1));
+		exit(1);
+	}
+	call(0, 0);
 
 	// Load the main script if provided
 	if(main) {
@@ -54,6 +57,15 @@ void setup_lua(const char *main) {
 			exit(1);
 		}
 	}
+}
+
+//
+// Timer handler
+//
+void lua_handle_timer(raild_event *event) {
+	lua_pushlightuserdata(L, event);
+	lua_gettable(L, LUA_REGISTRYINDEX);
+	call(0, 0);
 }
 
 //
@@ -73,15 +85,27 @@ static int event_prepare(const char *ev) {
 // Ready event
 //
 int lua_onready() {
-	if(!event_prepare("onready")) return 0;
+	if(!event_prepare("OnReady")) return 0;
 	return call(0, 0);
 }
 
+int lua_ondisconnect() {
+	if(!event_prepare("OnDisconnect")) return 0;
+	return call(0, 0);
+}
 
-void lua_handle_timer(raild_event *event) {
-	lua_pushlightuserdata(L, event);
-	lua_gettable(L, LUA_REGISTRYINDEX);
-	call(0, 0);
+int lua_onsensorchanged(int sensorid, bool state) {
+	if(!event_prepare("OnSensorChanged")) return 0;
+	lua_pushnumber(L, sensorid);
+	lua_pushboolean(L, state);
+	return call(2, 0);
+}
+
+int lua_onswitchchanged(int switchid, bool state) {
+	if(!event_prepare("OnSwitchChanged")) return 0;
+	lua_pushnumber(L, switchid);
+	lua_pushboolean(L, state);
+	return call(2, 0);
 }
 
 //
@@ -109,10 +133,10 @@ API_DECL(HubReady) {
 //
 // Creates a new timer
 //
-API_DECL(TimerCreate) {
+API_DECL(CreateTimer) {
 	// Check arguments
-	int initial  = (int) luaL_checknumber(L, 1);
-	int interval = (int) luaL_checknumber(L, 2);
+	int initial  = luaL_checknumber(L, 1);
+	int interval = luaL_checknumber(L, 2);
 	luaL_checktype(L, 3, LUA_TFUNCTION);
 
 	// Create the timer
@@ -133,7 +157,7 @@ API_DECL(TimerCreate) {
 //
 // Cancels the timer
 //
-API_DECL(TimerCancel) {
+API_DECL(CancelTimer) {
 	luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
 	raild_event *event = (raild_event *) lua_touserdata(L, 1);
 
@@ -155,14 +179,60 @@ API_DECL(TimerCancel) {
 	return 0;
 }
 
+API_DECL(GetSwitch) {
+	int sid = luaL_checknumber(L, 1);
+	if(sid < 1 || sid > 8) {
+		luaL_error(L, "out of bounds switch id");
+	}
+
+	lua_pushboolean(L, get_hub_state(RHUB_SWITCHES) & (1 << (sid - 1)));
+	return 1;
+}
+
+API_DECL(SetSwitch) {
+	int  sid   = luaL_checknumber(L, 1);
+	bool state = lua_toboolean(L, 2);
+
+	if(sid < 1 || sid > 8) {
+		luaL_error(L, "out of bounds switch id");
+	}
+
+	if(state) {
+		uart_setswitch_on(sid - 1);
+	} else {
+		uart_setswitch_off(sid - 1);
+	}
+
+	return 0;
+}
+
+API_DECL(GetSensor) {
+	int sid = luaL_checknumber(L, 1);
+
+	if(sid < 1 || sid > 24) {
+		luaL_error(L, "out of bounds switch id");
+	} else if(sid < 9) {
+		lua_pushboolean(L, get_hub_state(RHUB_SENSORS1) & (1 << (sid - 1)));
+	} else if(sid < 17) {
+		lua_pushboolean(L, get_hub_state(RHUB_SENSORS2) & (1 << (sid - 9)));
+	} else {
+		lua_pushboolean(L, get_hub_state(RHUB_SENSORS3) & (1 << (sid - 17)));
+	}
+
+	return 1;
+}
+
 //
 // Library object
 //
 luaL_Reg raild_api[] = {
 	API_LINK(exit),
 	API_LINK(HubReady),
-	API_LINK(TimerCreate),
-	API_LINK(TimerCancel),
+	API_LINK(CreateTimer),
+	API_LINK(CancelTimer),
+	API_LINK(GetSwitch),
+	API_LINK(SetSwitch),
+	API_LINK(GetSensor),
 	{ NULL, NULL }
 };
 

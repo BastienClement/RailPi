@@ -90,8 +90,17 @@ static void uart_process(rbyte *buffer, int len) {
 		switch(state) {
 			case UART_PROCESS_DISPATCH:
 				switch(c) {
-					case HELLO: TRACE("HELLO"); set_hub_readiness(false); break;
-					case READY: TRACE("READY"); set_hub_readiness(true);  break;
+					case HELLO:
+						TRACE("HELLO");
+						set_hub_readiness(false);
+						uart_put(SET_SWITCHES);
+						uart_put(get_hub_state(RHUB_SWITCHES));
+					break;
+
+					case READY:
+						TRACE("READY");
+						set_hub_readiness(true);
+					break;
 
 					case SENSORS_1: state = UART_PROCESS_SENSORS1; break;
 					case SENSORS_2: state = UART_PROCESS_SENSORS2; break;
@@ -160,4 +169,14 @@ void uart_handle_event(raild_event *event) {
 	} else {
 		uart_process(buffer, len);
 	}
+}
+
+void uart_setswitch_on(rbyte sid) {
+	uart_put(SET_SWITCH_ON);
+	uart_put(sid);
+}
+
+void uart_setswitch_off(rbyte sid) {
+	uart_put(SET_SWITCH_OFF);
+	uart_put(sid);
 }

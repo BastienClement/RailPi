@@ -58,9 +58,10 @@ void setup_lua(const char *main);
 //
 // --- State ---
 //
-void set_hub_state(rhub_port port, rbyte value);
-void set_hub_readiness(bool r);
-bool get_hub_readiness();
+void  set_hub_state(rhub_port port, rbyte value);
+rbyte get_hub_state(rhub_port port);
+void  set_hub_readiness(bool r);
+bool  get_hub_readiness();
 
 //
 // --- Main ---
@@ -89,13 +90,18 @@ void         raild_timer_autodelete(raild_event *event);
 // --- UART ---
 //
 void uart_reset();
+void uart_setswitch_on(rbyte sid);
+void uart_setswitch_off(rbyte sid);
 void uart_handle_event(raild_event *udata);
 
 //
 // --- Lua ---
 //
-int  lua_onready();
 void lua_handle_timer(raild_event *event);
 void lualib_register();
+int  lua_onready();
+int  lua_ondisconnect();
+int  lua_onsensorchanged(int sensorid, bool state);
+int  lua_onswitchchanged(int switchid, bool state);
 
 #endif
