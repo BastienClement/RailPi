@@ -23,6 +23,7 @@ raild_event *raild_timer_create(int initial, int interval, raild_event_type type
 }
 
 void raild_timer_delete(raild_event *event) {
+	close(event->fd);
 	raild_epoll_rem(event);
 }
 

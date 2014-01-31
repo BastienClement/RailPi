@@ -67,7 +67,7 @@ raild_event *raild_epoll_add(int fd, raild_event_type type) {
 // (it's why you can't just pass the fd to remove as parameter)
 //
 void raild_epoll_rem(raild_event *event) {
-	epoll_ctl(efd, EPOLL_CTL_DEL, event->fd, 0);
+	//epoll_ctl(efd, EPOLL_CTL_DEL, event->fd, 0);
 	free(event);
 }
 
