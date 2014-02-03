@@ -72,8 +72,20 @@ int main(int argc, char **argv) {
 					uart_handle_event(event);
 					break;
 
+				case RAILD_EV_UART_TIMER:
+					uart_handle_timer(event);
+					break;
+
 				case RAILD_EV_LUA_TIMER:
 					lua_handle_timer(event);
+					break;
+
+				case RAILD_EV_SERVER:
+					socket_handle_server(event);
+					break;
+
+				case RAILD_EV_SOCKET:
+					socket_handle_client(event);
 					break;
 
 				default:

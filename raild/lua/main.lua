@@ -4,11 +4,14 @@ end
 
 function OnSensorChanged(sid, state)
 	print("Sensor", sid, state)
-	if state and sid == 1 then
-		print("Switch", true)
-		SetSwitch(1, false)
-	elseif state and (sid == 9 or sid == 17) then
-		print("Switch", false)
-		SetSwitch(1, true)
+	
+	if state and sid == 17 then
+		SetSwitch(1, not GetSwitch(1))
+	end
+	
+	if state and sid == 2 then
+		SetSwitch(2, true)
+	elseif state and sid == 10 then
+		SetSwitch(2, false)
 	end
 end

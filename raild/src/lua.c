@@ -77,6 +77,26 @@ void setup_lua(const char *main) {
 	}
 }
 
+void lua_set_context(int fd) {
+	lua_pushnumber(L, fd);
+	lua_setfield(L, LUA_REGISTRYINDEX, "context_fd");
+}
+
+void lua_clear_context() {
+	lua_pushnil(L);
+	lua_setfield(L, LUA_REGISTRYINDEX, "context_fd");
+}
+
+void lua_eval(const char *buffer, size_t length) {
+	if(luaL_loadbuffer(L, buffer, length, "API") != 0) {
+		printf("[LUA]\t Error loading API code: %s\n", lua_tostring(L, -1));
+		lua_pop(L, 1);
+		return;
+	}
+
+	call(0, 0);
+}
+
 //
 // Timer handler
 //
@@ -163,6 +183,49 @@ int lua_onswitchchanged(int switchid, bool state) {
 API_DECL(exit) {
 	printf("[LUA]\t Script killed the main process!\n");
 	exit(2);
+}
+
+//
+// send(data)
+// Sends a data string to the remote point of the API
+//
+API_DECL(send) {
+	luaL_checkstring(L, 1);
+
+	int fd;
+	if(lua_isnumber(L, 2)) {
+		fd = lua_tonumber(L, 2);
+	} else {
+		lua_getfield(L, LUA_REGISTRYINDEX, "context_fd");
+		if(lua_isnil(L, -1)) {
+			return luaL_error(L, "send(): called without API context");
+		}
+
+		fd = lua_tonumber(L, -1);
+	}
+
+	if(!fd) {
+		return luaL_error(L, "send(): invalid file descriptor");
+	}
+
+	size_t len;
+	const char *buffer = lua_tolstring(L, 1, &len);
+	write(fd, buffer, len);
+
+	return 0;
+}
+
+//
+// GetCtx()
+// Returns the current API context file descriptor
+//
+API_DECL(GetCtx) {
+	lua_getfield(L, LUA_REGISTRYINDEX, "context_fd");
+	if(lua_isnil(L, -1)) {
+		return luaL_error(L, "GetCtx(): called without API context");
+	}
+
+	return 1;
 }
 
 //
@@ -286,6 +349,8 @@ API_DECL(GetSensor) {
 //
 luaL_Reg raild_api[] = {
 	API_LINK(exit),
+	API_LINK(send),
+	API_LINK(GetCtx),
 	API_LINK(HubReady),
 	API_LINK(CreateTimer),
 	API_LINK(CancelTimer),

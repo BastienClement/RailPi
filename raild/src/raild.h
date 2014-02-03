@@ -29,10 +29,11 @@ typedef enum {
 
 // fd type indicator for epoll events
 typedef enum {
-	RAILD_EV_UART,      // New data available to read from RailHub
-	RAILD_EV_SERVER,    // Events from the TCP/IP server
-	RAILD_EV_SOCKET,    // Events from a TCP/IP client
-	RAILD_EV_LUA_TIMER, // Timer created by Lua scripts
+	RAILD_EV_UART,       // New data available to read from RailHub
+	RAILD_EV_UART_TIMER, // UART timer event
+	RAILD_EV_SERVER,     // Events from the TCP/IP server
+	RAILD_EV_SOCKET,     // Events from a TCP/IP client
+	RAILD_EV_LUA_TIMER,  // Timer created by Lua scripts
 } raild_event_type;
 
 // user data struct for epoll events
@@ -91,13 +92,23 @@ void         raild_timer_autodelete(raild_event *event);
 void uart_reset();
 void uart_setswitch_on(rbyte sid);
 void uart_setswitch_off(rbyte sid);
-void uart_handle_event(raild_event *udata);
+void uart_handle_event(raild_event *event);
+void uart_handle_timer(raild_event *event);
+
+//
+// --- Socket ---
+//
+void socket_handle_server(raild_event *event);
+void socket_handle_client(raild_event *event);
 
 //
 // --- Lua ---
 //
 void lua_handle_timer(raild_event *event);
 void lualib_register();
+void lua_set_context(int fd);
+void lua_clear_context();
+void lua_eval(const char *buffer, size_t length);
 int  lua_onready();
 int  lua_ondisconnect();
 int  lua_onsensorchanged(int sensorid, bool state);

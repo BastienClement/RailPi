@@ -78,7 +78,7 @@ int setup_uart() {
 	tcsetattr(uart0_filestream, TCSANOW, &options);
 
 	raild_epoll_add(uart0_filestream, RAILD_EV_UART);
-	raild_timer_create(500, 500, RAILD_EV_UART);
+	raild_timer_create(500, 500, RAILD_EV_UART_TIMER);
 
 	uart_reset();
 	return uart0_filestream;
@@ -144,21 +144,20 @@ static void uart_process(rbyte *buffer, int len) {
 	}
 }
 
-void uart_handle_event(raild_event *event) {
-	if(event->timer) {
-		if(get_hub_readiness()) {
-			if(!keep_alive_missing) {
-				keep_alive_missing = true;
-			} else {
-				printf("[UART]\t RailHub gone!\n");
-				set_hub_readiness(false);
-			}
+void uart_handle_timer(raild_event *event) {
+	if(get_hub_readiness()) {
+		if(!keep_alive_missing) {
+			keep_alive_missing = true;
 		} else {
-			uart_reset();
+			printf("[UART]\t RailHub gone!\n");
+			set_hub_readiness(false);
 		}
-		return;
+	} else {
+		uart_reset();
 	}
+}
 
+void uart_handle_event(raild_event *event) {
 	int len = read(uart0_filestream, (void *) buffer, 256);
 
 	if(len == EAGAIN || len == 0) {
