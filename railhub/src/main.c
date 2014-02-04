@@ -24,9 +24,9 @@ void handle_input() reentrant {
 		//
 		// Sensors
 		//
-		case GET_SENSORS_1: SEND_DATA(SENSORS_1, P4); break;
-		case GET_SENSORS_2: SEND_DATA(SENSORS_2, P5); break;
-		case GET_SENSORS_3: SEND_DATA(SENSORS_3, P6); break;
+		case GET_SENSORS_1: SEND_DATA(SENSORS_1, ~P4); break;
+		case GET_SENSORS_2: SEND_DATA(SENSORS_2, ~P5); break;
+		case GET_SENSORS_3: SEND_DATA(SENSORS_3, ~P6); break;
 		
 		//
 		// Switches manipulation
@@ -84,18 +84,18 @@ void dead() {
 void watch_sensors() {
 	uint8 _shadow;
 	uint8 switches = P2;
-	uint8 sensors1 = P4;
-	uint8 sensors2 = P5;
-	uint8 sensors3 = P6;
+	uint8 sensors1 = ~P4;
+	uint8 sensors2 = ~P5;
+	uint8 sensors3 = ~P6;
 	
-	SEND_DATA(SENSORS_1, P4);
-	SEND_DATA(SENSORS_2, P5);
-	SEND_DATA(SENSORS_3, P6);
+	SEND_DATA(SENSORS_1, ~P4);
+	SEND_DATA(SENSORS_2, ~P5);
+	SEND_DATA(SENSORS_3, ~P6);
 	
 	putchar_raw(READY);
 	
 	#define DO_SHADOW(shadow, port, opcode, action) \
-		if(_shadow = port, _shadow != shadow) { \
+		if(_shadow = (port), _shadow != shadow) { \
 			shadow = _shadow; \
 			action; \
 			WATCHDOG; \
@@ -106,9 +106,9 @@ void watch_sensors() {
 		WATCHDOG;
 		
 		DO_SHADOW(switches, P2, SWITCHES,);
-		DO_SHADOW(sensors1, P4, SENSORS_1,);
-		DO_SHADOW(sensors2, P5, SENSORS_2,);
-		DO_SHADOW(sensors3, P6, SENSORS_3,);
+		DO_SHADOW(sensors1, ~P4, SENSORS_1,);
+		DO_SHADOW(sensors2, ~P5, SENSORS_2,);
+		DO_SHADOW(sensors3, ~P6, SENSORS_3,);
 		
 		if(RI0 == 1) {
 			handle_input();
