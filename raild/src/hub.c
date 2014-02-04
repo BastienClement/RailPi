@@ -16,7 +16,7 @@
 static bool  hub_is_ready = false;
 
 // Flag indicating if the circuit is powered
-static bool  power        = false;
+static bool  power        = true;
 
 // Cache for every sensors and switches
 static rbyte hub_sensors1 = 0x00;
