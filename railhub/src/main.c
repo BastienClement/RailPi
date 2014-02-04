@@ -62,19 +62,10 @@ void handle_input() reentrant {
 
 sbit led = P1^6;
 void dead() {
-	uint16 c = 0;
-	bit    b = 0;
-	uint8  z = 0;
+	led = 0;
 	
 	while(1) {
 		WATCHDOG;
-		
-		if(!++c) {
-			b = !b;
-			z++;
-			led = (z % 10) > 5 ? 1 : 0;
-		}
-		
 		if(RI0 == 1) {
 			handle_input();
 		}
@@ -136,7 +127,7 @@ void main(void) {
 	PORT_Init();   // initialize crossbar and GPIO
 	UART0_Init();  // initialize UART0
 	
-	led = 0;
+	led = 1;
 	P2  = 0x00;
 	
 	putchar_raw(HELLO);
