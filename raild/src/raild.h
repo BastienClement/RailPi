@@ -74,6 +74,8 @@ void  set_hub_state(rhub_port port, rbyte value);
 rbyte get_hub_state(rhub_port port);
 void  set_hub_readiness(bool r);
 bool  get_hub_readiness();
+void  set_power(bool p);
+bool  get_power();
 
 //
 // --- Epoll wrappers ---

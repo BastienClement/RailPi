@@ -15,6 +15,9 @@
 // Flag indicating if RailHub is connected and in Ready state
 static bool  hub_is_ready = false;
 
+// Flag indicating if the circuit is powered
+static bool  power        = false;
+
 // Cache for every sensors and switches
 static rbyte hub_sensors1 = 0x00;
 static rbyte hub_sensors2 = 0x00;
@@ -99,7 +102,7 @@ rbyte get_hub_state(rhub_port port) {
 //
 void set_hub_readiness(bool r) {
 	hub_is_ready = r;
-	set_gpio(r);
+	set_gpio(hub_is_ready && power);
 	if(r) {
 		lua_onready();
 	} else {
@@ -112,4 +115,19 @@ void set_hub_readiness(bool r) {
 //
 bool get_hub_readiness() {
 	return hub_is_ready;
+}
+
+//
+// Set the circuit power state
+//
+void set_power(bool p) {
+	power = p;
+	set_gpio(hub_is_ready && power);
+}
+
+//
+// Returns if the circuit is powered
+//
+bool get_power() {
+	return power;
 }

@@ -270,10 +270,29 @@ API_DECL(GetCtx) {
 // HubReady()
 // Returns the readiness of RailHub
 //
-API_DECL(HubReady) {
+API_DECL(IsHubReady) {
 	lua_pushboolean(L, get_hub_readiness());
 	return 1;
 }
+
+//
+// SetPower()
+// Set the power state of the circuit
+//
+API_DECL(SetPower) {
+	set_power(lua_toboolean(L, 1));
+	return 0;
+}
+
+//
+// IsPowered()
+// Returns the circuit power state
+//
+API_DECL(IsPowered) {
+	lua_pushboolean(L, get_power());
+	return 1;
+}
+
 
 //
 // GetSwitch(switch_id)
@@ -426,7 +445,9 @@ luaL_Reg raild_api[] = {
 	API_LINK(send),
 
 	API_LINK(GetCtx),
-	API_LINK(HubReady),
+	API_LINK(IsHubReady),
+	API_LINK(SetPower),
+	API_LINK(IsPowered),
 	API_LINK(GetSwitch),
 	API_LINK(SetSwitch),
 	API_LINK(GetSensor),
