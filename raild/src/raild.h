@@ -58,7 +58,13 @@ typedef unsigned char rbyte;
 //
 int  setup_socket();
 int  setup_uart();
+void setup_gpio();
 void setup_lua(const char *main);
+
+//
+// --- GPIO ---
+//
+void set_gpio(bool state);
 
 //
 // --- State ---

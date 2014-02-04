@@ -28,6 +28,9 @@ int main(int argc, char **argv) {
 	// Socket
 	setup_socket();
 
+	// GPIO
+	setup_gpio();
+
 	printf("[RAILD]\t Setup completed!\n");
 
 	// Main event loop

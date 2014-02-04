@@ -99,6 +99,7 @@ rbyte get_hub_state(rhub_port port) {
 //
 void set_hub_readiness(bool r) {
 	hub_is_ready = r;
+	set_gpio(r);
 	if(r) {
 		lua_onready();
 	} else {
