@@ -48,6 +48,7 @@ typedef struct raild_event_t {
 	int                   times; // Number of times this timer was triggered since the last event
 	int                   n;     // User-defined number
 	void                 *ptr;   // User-defined pointer
+	bool                  purge; // True when this event is ready to be collected
 } raild_event;
 
 // A single byte of 8-bit used for communication with RailHub
@@ -56,8 +57,8 @@ typedef unsigned char rbyte;
 //
 // --- SETUP ---
 //
-int  setup_socket();
-int  setup_uart();
+void setup_socket();
+void setup_uart();
 void setup_gpio();
 void setup_lua(const char *main);
 
@@ -82,6 +83,7 @@ extern struct epoll_event *epoll_events;
 void         raild_epoll_create();
 raild_event *raild_epoll_add(int fd, raild_event_type type);
 void         raild_epoll_rem(raild_event *udata);
+void         raild_epoll_purge(raild_event *event);
 int          raild_epoll_wait();
 raild_event *event_data(int n);
 
@@ -115,9 +117,13 @@ void lualib_register();
 void lua_set_context(int fd);
 void lua_clear_context();
 void lua_eval(const char *buffer, size_t length);
-int  lua_onready();
-int  lua_ondisconnect();
-int  lua_onsensorchanged(int sensorid, bool state);
-int  lua_onswitchchanged(int switchid, bool state);
+
+void lua_onready();
+void lua_ondisconnect();
+void lua_onsensorchanged(int sensorid, bool state);
+void lua_onswitchchanged(int switchid, bool state);
+void lua_onctxalloc(int fd, const char *cls);
+void lua_onctxdealloc(int fd);
+void lua_ontimerdeleted(void *timer);
 
 #endif

@@ -40,6 +40,24 @@ static int call(int nargs, int nres) {
 }
 
 //
+// Wrapper around call() for event dispatching
+//
+static void dispatch(int nargs) {
+	call(nargs + 1, 0);
+}
+
+//
+// Prepares an event for dispatching
+//
+static void prepare_event(const char *ev) {
+	// Fetch the event function from global variables
+	lua_getfield(L, LUA_GLOBALSINDEX, "__dispatch_event");
+
+	// Push the event name as first argument
+	lua_pushstring(L, ev);
+}
+
+//
 // Setup everything Lua-related
 //
 void setup_lua(const char *main) {
@@ -77,16 +95,26 @@ void setup_lua(const char *main) {
 	}
 }
 
+//
+// Sets the current script context
+//
 void lua_set_context(int fd) {
 	lua_pushnumber(L, fd);
 	lua_setfield(L, LUA_REGISTRYINDEX, "context_fd");
 }
 
+//
+// Removes the script context
+//
 void lua_clear_context() {
 	lua_pushnil(L);
 	lua_setfield(L, LUA_REGISTRYINDEX, "context_fd");
 }
 
+//
+// Runs a specific buffer of Lua code
+// Called from the TCP/IP API to run client code
+//
 void lua_eval(const char *buffer, size_t length) {
 	if(luaL_loadbuffer(L, buffer, length, "API") != 0) {
 		printf("[LUA]\t Error loading API code: %s\n", lua_tostring(L, -1));
@@ -110,23 +138,6 @@ void lua_handle_timer(raild_event *event) {
 }
 
 //
-// Prepares an event for dispatching
-//
-static int event_prepare(const char *ev) {
-	// Fetch the event function from global variables
-	lua_getfield(L, LUA_GLOBALSINDEX, ev);
-
-	// lua_getfield returned nil
-	// This function does not exist
-	if(lua_isnil(L, -1)) {
-		lua_pop(L, 1);
-		return 0;
-	}
-
-	return 1;
-}
-
-//
 // --- Lua Events ---
 //
 
@@ -134,9 +145,9 @@ static int event_prepare(const char *ev) {
 // Ready event
 // Fired ever time the RailHub sends a READY opcode
 //
-int lua_onready() {
-	if(!event_prepare("OnReady")) return 0;
-	return call(0, 0);
+void lua_onready() {
+	prepare_event("Ready");
+	dispatch(0);
 }
 
 //
@@ -144,31 +155,59 @@ int lua_onready() {
 // Fired when RailHub failed to send keep-alive opcode and
 // is now considered disconnected
 //
-int lua_ondisconnect() {
-	if(!event_prepare("OnDisconnect")) return 0;
-	return call(0, 0);
+void lua_ondisconnect() {
+	prepare_event("Disconnect");
+	dispatch(0);
 }
 
 //
 // Sensor changed event
 // Fired when any of the 24 sensors changes state
 //
-int lua_onsensorchanged(int sensorid, bool state) {
-	if(!event_prepare("OnSensorChanged")) return 0;
+void lua_onsensorchanged(int sensorid, bool state) {
+	prepare_event("SensorChanged");
 	lua_pushnumber(L, sensorid);
 	lua_pushboolean(L, state);
-	return call(2, 0);
+	dispatch(2);
 }
 
 //
 // Switch changed event
 // Fired when any of the 8 switches changes state
 //
-int lua_onswitchchanged(int switchid, bool state) {
-	if(!event_prepare("OnSwitchChanged")) return 0;
+void lua_onswitchchanged(int switchid, bool state) {
+	prepare_event("SwitchChanged");
 	lua_pushnumber(L, switchid);
 	lua_pushboolean(L, state);
-	return call(2, 0);
+	dispatch(2);
+}
+
+//
+// Context allocated event
+//
+void lua_onctxalloc(int fd, const char *cls) {
+	prepare_event("CtxAlloc");
+	lua_pushnumber(L, fd);
+	lua_pushstring(L, cls);
+	dispatch(2);
+}
+
+//
+// Context deallocated event
+//
+void lua_onctxdealloc(int fd) {
+	prepare_event("CtxDealloc");
+	lua_pushnumber(L, fd);
+	dispatch(1);
+}
+
+//
+// Timer auto-deletec event
+//
+void lua_ontimerdeleted(void *timer) {
+	prepare_event("TimerDeleted");
+	lua_pushlightuserdata(L, timer);
+	dispatch(1);
 }
 
 //
@@ -197,7 +236,7 @@ API_DECL(send) {
 		fd = lua_tonumber(L, 2);
 	} else {
 		lua_getfield(L, LUA_REGISTRYINDEX, "context_fd");
-		if(lua_isnil(L, -1)) {
+		if(!lua_isnumber(L, -1)) {
 			return luaL_error(L, "send(): called without API context");
 		}
 
@@ -217,14 +256,13 @@ API_DECL(send) {
 
 //
 // GetCtx()
-// Returns the current API context file descriptor
+// Returns the current API context
 //
 API_DECL(GetCtx) {
 	lua_getfield(L, LUA_REGISTRYINDEX, "context_fd");
 	if(lua_isnil(L, -1)) {
-		return luaL_error(L, "GetCtx(): called without API context");
+		lua_pushnumber(L, 0);
 	}
-
 	return 1;
 }
 
@@ -235,58 +273,6 @@ API_DECL(GetCtx) {
 API_DECL(HubReady) {
 	lua_pushboolean(L, get_hub_readiness());
 	return 1;
-}
-
-//
-// TimerCreate(initial, interval, fn)
-// Creates a new timer ticking after 'initial' millisecond and the
-// every 'interval' millisecond until canceled
-// If interval == 0, this is a one-time timer automatically canceled
-// after its first tick
-//
-API_DECL(CreateTimer) {
-	// Check arguments
-	int initial  = luaL_checknumber(L, 1);
-	int interval = luaL_checknumber(L, 2);
-	luaL_checktype(L, 3, LUA_TFUNCTION);
-
-	// Create the timer
-	raild_event *event = raild_timer_create(initial, interval, RAILD_EV_LUA_TIMER);
-
-	// Store the callback function
-	lua_pushlightuserdata(L, event);
-	lua_pushvalue(L, 3);
-	lua_settable(L, LUA_REGISTRYINDEX);
-
-	// Return the timer event object as light user data
-	lua_pushlightuserdata(L, event);
-	return 1;
-}
-
-//
-// TimerCancel(timer)
-// Cancels the timer
-//
-API_DECL(CancelTimer) {
-	luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
-	raild_event *event = (raild_event *) lua_touserdata(L, 1);
-
-	// Ensure the timer still exists
-	lua_pushlightuserdata(L, event);
-	lua_gettable(L, LUA_REGISTRYINDEX);
-	if(lua_isnil(L, -1)) {
-		luaL_error(L, "attempt to cancel an already canceled timer");
-	}
-
-	// Effectively removes it
-	raild_timer_delete(event);
-
-	// Remove the callback function from the registry
-	lua_pushlightuserdata(L, event);
-	lua_pushnil(L);
-	lua_settable(L, LUA_REGISTRYINDEX);
-
-	return 0;
 }
 
 //
@@ -345,18 +331,110 @@ API_DECL(GetSensor) {
 }
 
 //
+// --- LUA Private API ---
+// C functions to be wrapped and then called by internal Lua code
+//
+
+//
+// __rd_set_ctx(ctx)
+// Low-level API for Lua-side context switching
+//
+API_DECL(__rd_set_ctx) {
+	luaL_checknumber(L, 1);
+
+	if(lua_tonumber(L, 1) == 0) {
+		lua_pushnil(L);
+	} else {
+		lua_pushvalue(L, 1);
+	}
+
+	lua_setfield(L, LUA_REGISTRYINDEX, "context_fd");
+	return 0;
+}
+
+//
+// __rd_create_timer(initial, interval, fn)
+// Creates a new timer ticking after 'initial' millisecond and the
+// every 'interval' millisecond until canceled
+//
+// If interval == 0, this is a one-time timer automatically canceled
+// after its first tick
+//
+// This function is then wrapped by the StdLib to add context switching
+// support.
+//
+API_DECL(__rd_create_timer) {
+	// Check arguments
+	int initial  = luaL_checknumber(L, 1);
+	int interval = luaL_checknumber(L, 2);
+	luaL_checktype(L, 3, LUA_TFUNCTION);
+
+	// Create the timer
+	raild_event *event = raild_timer_create(initial, interval, RAILD_EV_LUA_TIMER);
+
+	// Store the callback function
+	lua_pushlightuserdata(L, event);
+	lua_pushvalue(L, 3);
+	lua_settable(L, LUA_REGISTRYINDEX);
+
+	// Return the timer event object as light user data
+	lua_pushlightuserdata(L, event);
+	return 1;
+}
+
+//
+// __rd_cancel_timer(timer)
+// Cancels the timer
+//
+API_DECL(__rd_cancel_timer) {
+	luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+	raild_event *event = (raild_event *) lua_touserdata(L, 1);
+
+	// Ensure the timer still exists
+	lua_pushvalue(L, 1);
+	lua_gettable(L, LUA_REGISTRYINDEX);
+	if(lua_isnil(L, -1)) {
+		luaL_error(L, "attempt to cancel an already canceled timer");
+	}
+
+	// Effectively removes it
+	raild_timer_delete(event);
+
+	return 0;
+}
+
+//
+// __rd_unregister_timer(timer)
+// Removes the callback from the internal callbacks table
+//
+API_DECL(__rd_unregister_timer) {
+	luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+	raild_event *event = (raild_event *) lua_touserdata(L, 1);
+
+	// Remove the callback function from the registry
+	lua_pushlightuserdata(L, event);
+	lua_pushnil(L);
+	lua_settable(L, LUA_REGISTRYINDEX);
+	return 0;
+}
+
+//
 // Library object
 //
 luaL_Reg raild_api[] = {
 	API_LINK(exit),
 	API_LINK(send),
+
 	API_LINK(GetCtx),
 	API_LINK(HubReady),
-	API_LINK(CreateTimer),
-	API_LINK(CancelTimer),
 	API_LINK(GetSwitch),
 	API_LINK(SetSwitch),
 	API_LINK(GetSensor),
+
+	API_LINK(__rd_set_ctx),
+	API_LINK(__rd_create_timer),
+	API_LINK(__rd_cancel_timer),
+	API_LINK(__rd_unregister_timer),
 	{ NULL, NULL }
 };
 

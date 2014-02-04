@@ -36,7 +36,7 @@ void uart_reset() {
 	uart_put(RESET);
 }
 
-int setup_uart() {
+void setup_uart() {
 	printf("[UART]\t Init UART channel\n");
 
 	//OPEN THE UART
@@ -81,7 +81,6 @@ int setup_uart() {
 	raild_timer_create(500, 500, RAILD_EV_UART_TIMER);
 
 	uart_reset();
-	return uart0_filestream;
 }
 
 static void uart_process(rbyte *buffer, int len) {

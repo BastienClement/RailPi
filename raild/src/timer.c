@@ -35,6 +35,7 @@ void raild_timer_autodelete(raild_event *event) {
 	}
 
 	if(timer.it_interval.tv_sec == 0 && timer.it_interval.tv_nsec == 0) {
+		lua_ontimerdeleted((void *) event);
 		raild_timer_delete(event);
 	}
 }

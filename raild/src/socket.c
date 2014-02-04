@@ -14,7 +14,7 @@ typedef struct {
 	int   buffer_len;
 } client_data;
 
-int setup_socket() {
+void setup_socket() {
 	printf("[API]\t Init API server\n");
 
 	sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -52,7 +52,6 @@ int setup_socket() {
 	}
 
 	raild_epoll_add(sockfd, RAILD_EV_SERVER);
-	return sockfd;
 }
 
 void socket_handle_server(raild_event *event) {

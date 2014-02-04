@@ -1,8 +1,5 @@
-function OnReady()
-	print "ready"
-end
 
-function OnSensorChanged(sid, state)
+On("SensorChanged", function(sid, state)
 	print("Sensor", sid, state)
 	
 	if state and sid == 17 then
@@ -14,4 +11,4 @@ function OnSensorChanged(sid, state)
 	elseif state and sid == 10 then
 		SetSwitch(2, false)
 	end
-end
+end)

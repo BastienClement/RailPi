@@ -19,11 +19,11 @@ int main(int argc, char **argv) {
 	// Epoll
 	raild_epoll_create();
 
-	// UART
-	setup_uart();
-
 	// Lua
 	setup_lua((argc > 1) ? argv[1] : NULL);
+
+	// UART
+	setup_uart();
 
 	// Socket
 	setup_socket();
@@ -97,8 +97,13 @@ int main(int argc, char **argv) {
 			}
 
 			// Auto delete feature for non-repeatable timer events
-			if(event->timer) {
+			if(!event->purge && event->timer) {
 				raild_timer_autodelete(event);
+			}
+
+			// If this event is marked for purge at the end of the event loop
+			if(event->purge) {
+				raild_epoll_purge(event);
 			}
 		}
 	}

@@ -44,6 +44,7 @@ raild_event *raild_epoll_add(int fd, raild_event_type type) {
 	event->timer = false;
 	event->n     = 0;
 	event->ptr   = 0;
+	event->purge = false;
 
 	// Setting up everything required by epoll
 	struct epoll_event epoll_ev;
@@ -58,6 +59,18 @@ raild_event *raild_epoll_add(int fd, raild_event_type type) {
 		exit(1);
 	}
 
+	char *cls;
+	switch(type) {
+		case RAILD_EV_UART: cls = "UART"; break;
+		case RAILD_EV_UART_TIMER: cls = "UART_TIMER"; break;
+		case RAILD_EV_SERVER: cls = "API_SERVER"; break;
+		case RAILD_EV_SOCKET: cls = "API_CLIENT"; break;
+		case RAILD_EV_LUA_TIMER: cls = "LUA_TIMER"; break;
+		default: cls = "UNKNOWN";
+	}
+
+	lua_onctxalloc(fd, cls);
+
 	return event;
 }
 
@@ -68,6 +81,14 @@ raild_event *raild_epoll_add(int fd, raild_event_type type) {
 //
 void raild_epoll_rem(raild_event *event) {
 	//epoll_ctl(efd, EPOLL_CTL_DEL, event->fd, 0);
+	lua_onctxdealloc(event->fd);
+	event->purge = true;
+}
+
+//
+// Collect the event memory
+//
+void raild_epoll_purge(raild_event *event) {
 	free(event);
 }
 
