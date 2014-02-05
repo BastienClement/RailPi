@@ -178,3 +178,11 @@ void uart_setswitch_off(rbyte sid) {
 	uart_put(SET_SWITCH_OFF);
 	uart_put(sid);
 }
+
+void uart_setpower(bool state) {
+	if(state) {
+		uart_put(POWER_ON);
+	} else {
+		uart_put(POWER_OFF);
+	}
+}

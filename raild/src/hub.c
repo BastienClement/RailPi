@@ -24,6 +24,11 @@ static rbyte hub_sensors2 = 0x00;
 static rbyte hub_sensors3 = 0x00;
 static rbyte hub_switches = 0x00;
 
+static void sync_power() {
+	set_gpio(hub_is_ready && power);
+	uart_setpower(hub_is_ready && power);
+}
+
 //
 // Update the Raild cache with fresh informations from RailHub
 // This function also fires associated Lua events
@@ -58,13 +63,17 @@ void set_hub_state(rhub_port port, rbyte value) {
 			break;
 	}
 
+	// Update the cache
+	rbyte old_value = *shadow;
+	*shadow = value;
+
 	// Only send events when RailHub is ready
 	// Prevents a lot of event flood during synchronization with RailHub
 	if(hub_is_ready) {
 		// Check every bit on this port
 		for(int i = 0; i < 8; i++) {
 			int sensor_state = value & (1 << i);
-			int shadow_state = *shadow & (1 << i);
+			int shadow_state = old_value & (1 << i);
 
 			// If the bit received is different from the cached one
 			if(sensor_state != shadow_state) {
@@ -78,11 +87,6 @@ void set_hub_state(rhub_port port, rbyte value) {
 			}
 		}
 	}
-
-	// Update the cache
-	// Note: since the cached value is only updated after the event execution,
-	// Lua scripts can still access the old value with the GetSensor() function
-	*shadow = value;
 }
 
 //
@@ -102,7 +106,7 @@ rbyte get_hub_state(rhub_port port) {
 //
 void set_hub_readiness(bool r) {
 	hub_is_ready = r;
-	set_gpio(hub_is_ready && power);
+	sync_power();
 	if(r) {
 		lua_onready();
 	} else {
@@ -122,7 +126,7 @@ bool get_hub_readiness() {
 //
 void set_power(bool p) {
 	power = p;
-	set_gpio(hub_is_ready && power);
+	sync_power();
 }
 
 //

@@ -10,7 +10,7 @@ end
 function watchdog()
 	if IsPowered() and GetSensor(2) and GetSensor(10) then
 		SetPower(false)
-	elseif not IsPowered() and not (GetSensor(2) and GetSensor(10)) then
+	elseif not IsPowered() and not (GetSensor(2) and GetSensor(10)) and GetSensor(1) then
 		SetPower(true)
 	end
 end

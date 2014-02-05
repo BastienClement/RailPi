@@ -102,6 +102,7 @@ void         raild_timer_autodelete(raild_event *event);
 void uart_reset();
 void uart_setswitch_on(rbyte sid);
 void uart_setswitch_off(rbyte sid);
+void uart_setpower(bool state);
 void uart_handle_event(raild_event *event);
 void uart_handle_timer(raild_event *event);
 
