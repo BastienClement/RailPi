@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
 	// Socket
 	setup_socket();
 
+	lua_oninit();
 	printf("[RAILD]\t Setup completed!\n");
 
 	// Main event loop

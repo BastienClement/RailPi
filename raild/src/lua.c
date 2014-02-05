@@ -211,6 +211,15 @@ void lua_ontimerdeleted(void *timer) {
 }
 
 //
+// Init event
+//
+void lua_oninit() {
+	prepare_event("Init");
+	dispatch(0);
+}
+
+
+//
 // --- LUA C API ---
 // C functions to be called by Lua code
 //

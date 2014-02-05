@@ -128,5 +128,6 @@ void lua_onswitchchanged(int switchid, bool state);
 void lua_onctxalloc(int fd, const char *cls);
 void lua_onctxdealloc(int fd);
 void lua_ontimerdeleted(void *timer);
+void lua_oninit();
 
 #endif
