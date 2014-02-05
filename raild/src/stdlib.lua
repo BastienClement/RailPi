@@ -228,6 +228,11 @@ do
 		-- Current context
 		local ctx = GetCtx()
 		
+		-- Force a minimum delay for the timer to fire at least one time
+		if initial < 1 then
+			initial = 1
+		end
+		
 		-- Create the timer
 		local tid = create_timer(initial, interval, function()
 			-- Enter context before execution
