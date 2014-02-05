@@ -16,6 +16,9 @@ int main(int argc, char **argv) {
 
 	// --- SETUP ---
 
+	// GPIO
+	setup_gpio();
+
 	// Epoll
 	raild_epoll_create();
 
@@ -27,9 +30,6 @@ int main(int argc, char **argv) {
 
 	// Socket
 	setup_socket();
-
-	// GPIO
-	setup_gpio();
 
 	printf("[RAILD]\t Setup completed!\n");
 

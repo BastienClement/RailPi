@@ -7,8 +7,17 @@ function do_lock_s2()
 	CreateTimer(500, 0, function() lock_s2 = false end)
 end
 
+function watchdog()
+	if IsPowered() and GetSensor(2) and GetSensor(10) then
+		SetPower(false)
+	elseif not IsPowered() and not (GetSensor(2) and GetSensor(10)) then
+		SetPower(true)
+	end
+end
+
 On("SensorChanged", function(sid, state)
 	print("Sensor", sid, state)
+	watchdog()
 	
 	if not lock_s1 then
 		if state and sid == 17 then
@@ -27,4 +36,8 @@ On("SensorChanged", function(sid, state)
 			do_lock_s2()
 		end
 	end
+end)
+
+CreateTimer(500, 500, function()
+	watchdog()
 end)
