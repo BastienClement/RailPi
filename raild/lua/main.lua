@@ -41,3 +41,7 @@ end)
 CreateTimer(500, 500, function()
 	watchdog()
 end)
+
+On("Ready", function()
+	SetPower(true)
+end)
