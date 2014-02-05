@@ -3,6 +3,9 @@
 
 #define KEEP_ALIVE      0x2E
 
+#define POWER_ON        0x31
+#define POWER_OFF       0x32
+
 #define SENSORS_1       0x41
 #define SENSORS_2       0x42
 #define SENSORS_3       0x43

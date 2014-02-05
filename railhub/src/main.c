@@ -19,6 +19,8 @@ char putchar_raw(char c)  {
 	return (SBUF0 = c);
 }
 
+sbit led = P1^6;
+
 void handle_input() reentrant {
 	switch(_getkey()) {
 		//
@@ -44,6 +46,17 @@ void handle_input() reentrant {
 		case SET_SWITCH_OFF:
 			P2 &= ~(1 << _getkey());
 			break;
+	
+		//
+		// Power control
+		//
+		case POWER_ON:
+			led = 1;
+			break;
+		
+		case POWER_OFF:
+			led = 0;
+			break;
 		
 		//
 		// Keep-Alive
@@ -60,7 +73,6 @@ void handle_input() reentrant {
 	}
 }
 
-sbit led = P1^6;
 void dead() {
 	led = 0;
 	
