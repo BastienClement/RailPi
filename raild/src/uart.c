@@ -5,7 +5,7 @@
 
 #define UART_DEBUG  1
 #if UART_DEBUG
-#define TRACE(msg) printf("[UART]\t trace: " msg "\n");
+#define TRACE(msg) logger("UART", "trace: " msg);
 #else
 #define TRACE(msg)
 #endif
@@ -37,7 +37,7 @@ void uart_reset() {
 }
 
 void setup_uart() {
-	printf("[UART]\t Init UART channel\n");
+	logger("UART", "Init UART channel");
 
 	//OPEN THE UART
 	//The flags (defined in fcntl.h):
@@ -54,7 +54,7 @@ void setup_uart() {
 	uart0_filestream = open("/dev/ttyAMA0", O_RDWR | O_NOCTTY | O_NONBLOCK);		//Open in non blocking read/write mode
 	if(uart0_filestream == -1) {
 		//ERROR - CAN'T OPEN SERIAL PORT
-		printf("Error - Unable to open UART.  Ensure it is not in use by another application\n");
+		logger_error("Unable to open UART.  Ensure it is not in use by another application");
 		exit(1);
 	}
 
@@ -112,7 +112,7 @@ static void uart_process(rbyte *buffer, int len) {
 					break;
 
 					default:
-						printf("[UART]\t Unknown opcode from RailHub: 0x%02x\n", (unsigned char) c);
+						printf("Unknown opcode from RailHub: 0x%02x\n", (unsigned char) c);
 				}
 				break;
 
@@ -137,7 +137,7 @@ static void uart_process(rbyte *buffer, int len) {
 				break;
 
 			default:
-				printf("[UART]\t Input processor is in an unknown state. Aborting.\n");
+				logger("UART", "Input processor is in an unknown state. Aborting.");
 				exit(1);
 		}
 	}
@@ -148,7 +148,7 @@ void uart_handle_timer(raild_event *event) {
 		if(!keep_alive_missing) {
 			keep_alive_missing = true;
 		} else {
-			printf("[UART]\t RailHub gone!\n");
+			logger("UART", "RailHub gone!");
 			set_hub_readiness(false);
 		}
 	} else {

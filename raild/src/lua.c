@@ -32,7 +32,7 @@ lua_State *L;
 //
 static int call(int nargs, int nres) {
 	if(lua_pcall(L, nargs, nres, 0) != 0) {
-		printf("error: %s\n", lua_tostring(L, -1));
+		logger_error(lua_tostring(L, -1));
 		return 0;
 	}
 
@@ -62,7 +62,7 @@ static void prepare_event(const char *ev) {
 //
 void setup_lua(const char *main) {
 	// Setup the lua engine
-	printf("[LUA]\t Init Lua engine\n");
+	logger("LUA", "Init Lua engine");
 	L = luaL_newstate();
 
 	// Open standards libraries
@@ -78,18 +78,18 @@ void setup_lua(const char *main) {
 	// As previously noted, the address (and not the value) of the ..._size
 	// variable is the length of the embedded script file.
 	if(luaL_loadbuffer(L, &_binary_src_stdlib_lua_start, (size_t) &_binary_src_stdlib_lua_size, "stdlib") != 0) {
-		printf("load: %s\n", lua_tostring(L, -1));
+		logger_light(logger_prefix("load:", lua_tostring(L, -1)));
 		exit(1);
 	}
 	call(0, 0);
 
 	// Load the main script if provided
 	if(main) {
-		printf("[LUA]\t Loading local script: %s\n", main);
+		logger("LUA", logger_prefix("Loading local script:", main));
 
 		// Load and run
 		if(luaL_loadfile(L, main) != 0 || lua_pcall(L, 0, 0, 0) != 0) {
-			printf("load: %s\n", lua_tostring(L, -1));
+			logger_light(logger_prefix("load:", lua_tostring(L, -1)));
 			exit(1);
 		}
 	}
@@ -117,7 +117,7 @@ void lua_clear_context() {
 //
 void lua_eval(const char *buffer, size_t length) {
 	if(luaL_loadbuffer(L, buffer, length, "API") != 0) {
-		printf("[LUA]\t Error loading API code: %s\n", lua_tostring(L, -1));
+		logger_error(logger_prefix("Error loading API code:", lua_tostring(L, -1)));
 		lua_pop(L, 1);
 		return;
 	}
@@ -229,7 +229,7 @@ void lua_oninit() {
 // A way for Lua scripts to kill the whole process
 //
 API_DECL(exit) {
-	printf("[LUA]\t Script killed the main process!\n");
+	logger("LUA", "Script killed the main process!");
 	exit(2);
 }
 

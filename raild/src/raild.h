@@ -130,4 +130,12 @@ void lua_onctxdealloc(int fd);
 void lua_ontimerdeleted(void *timer);
 void lua_oninit();
 
+//
+// --- Logger ---
+//
+void  logger(const char *prefix, const char* message);
+void  logger_error(const char* message);
+void  logger_light(const char* message);
+char* logger_prefix(const char* prefix, const char* message);
+
 #endif

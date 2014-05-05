@@ -12,7 +12,7 @@
  */
 
 int main(int argc, char **argv) {
-	printf("[RAILD]\t Starting raild...\n");
+	logger("RAILD", "Starting raild...");
 
 	// --- SETUP ---
 
@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 	setup_socket();
 
 	lua_oninit();
-	printf("[RAILD]\t Setup completed!\n");
+	logger("RAILD", "Setup completed!");
 
 	// Main event loop
 	// Spinning during the entire life of raild
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
 					break;
 
 				default:
-					printf("[EPOLL]\t Got event on an unmanageable fd type\n");
+					logger("EPOLL", "Got event on an unmanageable fd type");
 					exit(1);
 			}
 

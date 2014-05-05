@@ -15,7 +15,7 @@ typedef struct {
 } client_data;
 
 void setup_socket() {
-	printf("[API]\t Init API server\n");
+	logger("API", "Init API server");
 
 	sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if(sockfd < 0) {
@@ -55,7 +55,7 @@ void setup_socket() {
 }
 
 void socket_handle_server(raild_event *event) {
-	printf("[API]\t New client connected\n");
+	logger("API", "New client connected");
 
 	client_data *cdata = malloc(sizeof(client_data));
 	cdata->buffer      = malloc(sizeof(char[BUFFER_MAX_LEN]));
@@ -81,14 +81,14 @@ void socket_handle_client(raild_event *event) {
 
 	// Check some space exists in the client buffer
 	if(cdata->buffer_len == BUFFER_MAX_LEN) {
-		printf("[API]\t Client buffer overflow, kicking\n");
+		logger("API", "Client buffer overflow, kicking");
 		_close(event);
 		return;
 	}
 
 	// Connection closed
 	if(len == 0) {
-		printf("[API]\t Client disconnected\n");
+		logger("API", "Client disconnected");
 		_close(event);
 		return;
 	}
