@@ -92,7 +92,7 @@ void setup_lua(const char *main) {
     call(0, 0);
 
     // Alloc the main context
-    lua_onctxalloc(0, "INTERNAL");
+    lua_alloc_context(0, "INTERNAL");
 
     // Load the main script if provided
     if(main) {
@@ -221,7 +221,7 @@ void lua_alloc_context(int fd, const char *cls) {
 void lua_dealloc_context(int fd) {
     prepare_event_internal("DeallocContext");
     lua_pushnumber(L, fd);
-    call(1);
+    call(1, 0);
 }
 
 /**
@@ -230,7 +230,7 @@ void lua_dealloc_context(int fd) {
 void lua_delete_timer(void *timer) {
     prepare_event_internal("DeleteTimer");
     lua_pushlightuserdata(L, timer);
-    call(1);
+    call(1, 0);
 }
 
 //---------------------------------------------------------------------------//
