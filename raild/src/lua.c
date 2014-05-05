@@ -51,7 +51,7 @@ static void dispatch(int nargs) {
  */
 static void prepare_event_internal(const char *ev) {
     // Fetch the event function from bindings
-    lua_getfield(L, LUA_REGISTRYINDEX, "ev");
+    lua_getfield(L, LUA_REGISTRYINDEX, ev);
 }
 
 /**
