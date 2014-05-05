@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-I../shared/
+CFLAGS=-I../shared/ -O3
 LDFLAGS=-lluajit-5.1
 EXEC=raild
 SRC= $(wildcard src/*.c)
