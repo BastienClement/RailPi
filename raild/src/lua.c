@@ -233,7 +233,6 @@ void lua_delete_timer(void *timer) {
     call(1);
 }
 
-
 //---------------------------------------------------------------------------//
 // LUA C API
 // C functions to be called by Lua code
@@ -274,7 +273,6 @@ API_DECL(IsPowered) {
     lua_pushboolean(L, get_power());
     return 1;
 }
-
 
 /**
  * GetSwitch(switch_id)

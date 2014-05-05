@@ -1,6 +1,6 @@
 #include "raild.h"
 
-/*
+/**
  * Raild event loop
  *
  * The event loop is responsible for waiting, gathering and dispatching
@@ -12,102 +12,102 @@
  */
 
 int main(int argc, char **argv) {
-	logger("RAILD", "Starting raild...");
+    logger("RAILD", "Starting raild...");
 
-	// --- SETUP ---
+    // --- SETUP ---
 
-	// GPIO
-	setup_gpio();
+    // GPIO
+    setup_gpio();
 
-	// Epoll
-	raild_epoll_create();
+    // Epoll
+    raild_epoll_create();
 
-	// Lua
-	setup_lua((argc > 1) ? argv[1] : NULL);
+    // Lua
+    setup_lua((argc > 1) ? argv[1] : NULL);
 
-	// UART
-	setup_uart();
+    // UART
+    setup_uart();
 
-	// Socket
-	setup_socket();
+    // Socket
+    setup_socket();
 
-	lua_oninit();
-	logger("RAILD", "Setup completed!");
+    lua_oninit();
+    logger("RAILD", "Setup completed!");
 
-	// Main event loop
-	// Spinning during the entire life of raild
-	while(1) {
-		// Wait for events to handle
-		int n = raild_epoll_wait();
-		if(n < 1) {
-			// Event loop idle
-			// Just wait again
-			continue;
-		}
+    // Main event loop
+    // Spinning during the entire life of raild
+    while(1) {
+        // Wait for events to handle
+        int n = raild_epoll_wait();
+        if(n < 1) {
+            // Event loop idle
+            // Just wait again
+            continue;
+        }
 
-		// Fetching the current time
-		struct timespec tp;
-		clock_gettime(CLOCK_REALTIME, &tp);
+        // Fetching the current time
+        struct timespec tp;
+        clock_gettime(CLOCK_REALTIME, &tp);
 
-		// Handle each event one by one
-		for(int i = 0; i < n; i++) {
-			// Extract the raild_event struct from the event
-			raild_event *event = event_data(i);
+        // Handle each event one by one
+        for(int i = 0; i < n; i++) {
+            // Extract the raild_event struct from the event
+            raild_event *event = event_data(i);
 
-			// Add time informations
-			event->time = tp;
+            // Add time informations
+            event->time = tp;
 
-			// Filter function for timers
-			// Timers fds are automatically read and their 'proc'
-			// count is stored in the 'times' field of the raild_event
-			if(event->timer) {
-				uint64_t times;
-				if(read(event->fd, &times, 8) != 8) {
-					// This event did not really happened. Just ignore it.
-					continue;
-				} else {
-					event->times = (int) times;
-				}
-			}
+            // Filter function for timers
+            // Timers fds are automatically read and their 'proc'
+            // count is stored in the 'times' field of the raild_event
+            if(event->timer) {
+                uint64_t times;
+                if(read(event->fd, &times, 8) != 8) {
+                    // This event did not really happened. Just ignore it.
+                    continue;
+                } else {
+                    event->times = (int) times;
+                }
+            }
 
-			// Dispatch events
-			switch(event->type) {
-				case RAILD_EV_UART:
-					uart_handle_event(event);
-					break;
+            // Dispatch events
+            switch(event->type) {
+                case RAILD_EV_UART:
+                    uart_handle_event(event);
+                    break;
 
-				case RAILD_EV_UART_TIMER:
-					uart_handle_timer(event);
-					break;
+                case RAILD_EV_UART_TIMER:
+                    uart_handle_timer(event);
+                    break;
 
-				case RAILD_EV_LUA_TIMER:
-					lua_handle_timer(event);
-					break;
+                case RAILD_EV_LUA_TIMER:
+                    lua_handle_timer(event);
+                    break;
 
-				case RAILD_EV_SERVER:
-					socket_handle_server(event);
-					break;
+                case RAILD_EV_SERVER:
+                    socket_handle_server(event);
+                    break;
 
-				case RAILD_EV_SOCKET:
-					socket_handle_client(event);
-					break;
+                case RAILD_EV_SOCKET:
+                    socket_handle_client(event);
+                    break;
 
-				default:
-					logger("EPOLL", "Got event on an unmanageable fd type");
-					exit(1);
-			}
+                default:
+                    logger("EPOLL", "Got event on an unmanageable fd type");
+                    exit(1);
+            }
 
-			// Auto delete feature for non-repeatable timer events
-			if(!event->purge && event->timer) {
-				raild_timer_autodelete(event);
-			}
+            // Auto delete feature for non-repeatable timer events
+            if(!event->purge && event->timer) {
+                raild_timer_autodelete(event);
+            }
 
-			// If this event is marked for purge at the end of the event loop
-			if(event->purge) {
-				raild_epoll_purge(event);
-			}
-		}
-	}
+            // If this event is marked for purge at the end of the event loop
+            if(event->purge) {
+                raild_epoll_purge(event);
+            }
+        }
+    }
 
-	return 0;
+    return 0;
 }

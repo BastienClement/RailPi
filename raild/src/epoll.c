@@ -1,7 +1,7 @@
 #include "raild.h"
 #include <sys/epoll.h>
 
-/*
+/**
  * epoll() wrapper for raild
  *
  * This file contains helpers functions to encapsulate the epoll() API
@@ -20,9 +20,9 @@ static int efd;
 // An epoll_events array used to store results from epoll_wait()
 struct epoll_event *epoll_events;
 
-//
-// Creates a new epoll instance
-//
+/**
+ * Creates a new epoll instance
+ */
 void raild_epoll_create() {
     efd = epoll_create1(0);
     if(efd < 0) {
@@ -33,9 +33,9 @@ void raild_epoll_create() {
     epoll_events = calloc(MAX_EVENTS, sizeof(struct epoll_event));
 }
 
-//
-// Adds a new fd to the epoll instance
-//
+/**
+ * Adds a new fd to the epoll instance
+ */
 raild_event *raild_epoll_add(int fd, raild_event_type type) {
     // Create the raild_event object associated with this epoll instance
     raild_event *event = malloc(sizeof(raild_event));
@@ -74,34 +74,34 @@ raild_event *raild_epoll_add(int fd, raild_event_type type) {
     return event;
 }
 
-//
-// Removes a fd from the event loop
-// Must use the corresponding raild_event object for it to be freed.
-// (it's why you can't just pass the fd to remove as parameter)
-//
+/**
+ * Removes a fd from the event loop
+ * Must use the corresponding raild_event object for it to be freed.
+ * (it's why you can't just pass the fd to remove as parameter)
+ */
 void raild_epoll_rem(raild_event *event) {
     //epoll_ctl(efd, EPOLL_CTL_DEL, event->fd, 0);
     lua_dealloc_context(event->fd);
     event->purge = true;
 }
 
-//
-// Collect the event memory
-//
+/**
+ * Collect the event memory
+ */
 void raild_epoll_purge(raild_event *event) {
     free(event);
 }
 
-//
-// Simple wrapper around epoll wait
-//
+/**
+ * Simple wrapper around epoll wait
+ */
 int raild_epoll_wait() {
     return epoll_wait(efd, epoll_events, MAX_EVENTS, WAIT_TIMEOUT);
 }
 
-//
-// Returns the udata struct for the nth event
-//
+/**
+ * Returns the udata struct for the nth event
+ */
 raild_event *event_data(int n) {
     return (raild_event *) epoll_events[n].data.ptr;
 }

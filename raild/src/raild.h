@@ -1,9 +1,9 @@
 #ifndef RAILD_H
 #define RAILD_H 1
 
-//
-// --- INCLUDES ---
-//
+//---------------------------------------------------------------------------//
+// INCLUDES
+//---------------------------------------------------------------------------//
 // Common libraries
 #include <stdbool.h>
 #include <stdlib.h>
@@ -15,10 +15,9 @@
 #include <sys/types.h>
 #include <time.h>
 
-//
-// --- Types ---
-//
-
+//---------------------------------------------------------------------------//
+// Types
+//---------------------------------------------------------------------------//
 // List of ports physically available on RailHub
 typedef enum {
     RHUB_SENSORS1,
@@ -54,22 +53,22 @@ typedef struct raild_event_t {
 // A single byte of 8-bit used for communication with RailHub
 typedef unsigned char rbyte;
 
-//
-// --- SETUP ---
-//
+//---------------------------------------------------------------------------//
+// SETUP
+//---------------------------------------------------------------------------//
 void setup_socket();
 void setup_uart();
 void setup_gpio();
 void setup_lua(const char *main);
 
-//
-// --- GPIO ---
-//
+//---------------------------------------------------------------------------//
+// GPIO
+//---------------------------------------------------------------------------//
 void set_gpio(bool state);
 
-//
-// --- State ---
-//
+//---------------------------------------------------------------------------//
+// State
+//---------------------------------------------------------------------------//
 void  set_hub_state(rhub_port port, rbyte value);
 rbyte get_hub_state(rhub_port port);
 void  set_hub_readiness(bool r);
@@ -77,9 +76,9 @@ bool  get_hub_readiness();
 void  set_power(bool p);
 bool  get_power();
 
-//
-// --- Epoll wrappers ---
-//
+//---------------------------------------------------------------------------//
+// Epoll wrappers
+//---------------------------------------------------------------------------//
 extern struct epoll_event *epoll_events;
 
 void         raild_epoll_create();
@@ -89,16 +88,16 @@ void         raild_epoll_purge(raild_event *event);
 int          raild_epoll_wait();
 raild_event *event_data(int n);
 
-//
-// --- Timers ---
-//
+//---------------------------------------------------------------------------//
+// Timers
+//---------------------------------------------------------------------------//
 raild_event *raild_timer_create(int initial, int interval, raild_event_type type);
 void         raild_timer_delete(raild_event *event);
 void         raild_timer_autodelete(raild_event *event);
 
-//
-// --- UART ---
-//
+//---------------------------------------------------------------------------//
+// UART
+//---------------------------------------------------------------------------//
 void uart_reset();
 void uart_setswitch_on(rbyte sid);
 void uart_setswitch_off(rbyte sid);
@@ -106,15 +105,15 @@ void uart_setpower(bool state);
 void uart_handle_event(raild_event *event);
 void uart_handle_timer(raild_event *event);
 
-//
-// --- Socket ---
-//
+//---------------------------------------------------------------------------//
+// Socket
+//---------------------------------------------------------------------------//
 void socket_handle_server(raild_event *event);
 void socket_handle_client(raild_event *event);
 
-//
-// --- Lua ---
-//
+//---------------------------------------------------------------------------//
+// Lua
+//---------------------------------------------------------------------------//
 void lualib_register();
 void lua_eval(const char *buffer, size_t length);
 
@@ -132,9 +131,9 @@ void lua_ondisconnect();
 void lua_onsensorchanged(int sensorid, bool state);
 void lua_onswitchchanged(int switchid, bool state);
 
-//
-// --- Logger ---
-//
+//---------------------------------------------------------------------------//
+// Logger
+//---------------------------------------------------------------------------//
 void  logger(const char *prefix, const char* message);
 void  logger_error(const char* message);
 void  logger_light(const char* message);
