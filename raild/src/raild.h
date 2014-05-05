@@ -21,19 +21,19 @@
 
 // List of ports physically available on RailHub
 typedef enum {
-	RHUB_SENSORS1,
-	RHUB_SENSORS2,
-	RHUB_SENSORS3,
-	RHUB_SWITCHES
+    RHUB_SENSORS1,
+    RHUB_SENSORS2,
+    RHUB_SENSORS3,
+    RHUB_SWITCHES
 } rhub_port;
 
 // fd type indicator for epoll events
 typedef enum {
-	RAILD_EV_UART,       // New data available to read from RailHub
-	RAILD_EV_UART_TIMER, // UART timer event
-	RAILD_EV_SERVER,     // Events from the TCP/IP server
-	RAILD_EV_SOCKET,     // Events from a TCP/IP client
-	RAILD_EV_LUA_TIMER,  // Timer created by Lua scripts
+    RAILD_EV_UART,       // New data available to read from RailHub
+    RAILD_EV_UART_TIMER, // UART timer event
+    RAILD_EV_SERVER,     // Events from the TCP/IP server
+    RAILD_EV_SOCKET,     // Events from a TCP/IP client
+    RAILD_EV_LUA_TIMER,  // Timer created by Lua scripts
 } raild_event_type;
 
 // user data struct for epoll events
@@ -41,14 +41,14 @@ typedef enum {
 // is the main object passed around when dealing with events
 // and epoll.
 typedef struct raild_event_t {
-	int                   fd;    // The associated file descriptor
-	raild_event_type      type;  // Event type flag
-	struct timespec       time;  // Event trigger timestamp
-	bool                  timer; // TRUE if this event is a timer
-	int                   times; // Number of times this timer was triggered since the last event
-	int                   n;     // User-defined number
-	void                 *ptr;   // User-defined pointer
-	bool                  purge; // True when this event is ready to be collected
+    int                   fd;    // The associated file descriptor
+    raild_event_type      type;  // Event type flag
+    struct timespec       time;  // Event trigger timestamp
+    bool                  timer; // TRUE if this event is a timer
+    int                   times; // Number of times this timer was triggered since the last event
+    int                   n;     // User-defined number
+    void                 *ptr;   // User-defined pointer
+    bool                  purge; // True when this event is ready to be collected
 } raild_event;
 
 // A single byte of 8-bit used for communication with RailHub
@@ -115,20 +115,22 @@ void socket_handle_client(raild_event *event);
 //
 // --- Lua ---
 //
-void lua_handle_timer(raild_event *event);
 void lualib_register();
-void lua_set_context(int fd);
-void lua_clear_context();
 void lua_eval(const char *buffer, size_t length);
 
+void lua_alloc_context(int fd, const char *cls);
+void lua_dealloc_context(int fd);
+void lua_set_context(int fd);
+void lua_clear_context();
+
+void lua_handle_timer(raild_event *event);
+void lua_delete_timer(void *timer);
+
+void lua_oninit();
 void lua_onready();
 void lua_ondisconnect();
 void lua_onsensorchanged(int sensorid, bool state);
 void lua_onswitchchanged(int switchid, bool state);
-void lua_onctxalloc(int fd, const char *cls);
-void lua_onctxdealloc(int fd);
-void lua_ontimerdeleted(void *timer);
-void lua_oninit();
 
 //
 // --- Logger ---
