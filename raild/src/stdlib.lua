@@ -176,7 +176,7 @@ do
     --
     -- Attaches a new handler to an event
     --
-    function On(event, fn)
+    function On(event, fn, persistent)
         -- First time an event is registered
         if not events[event] then
             events[event] = {}
@@ -186,7 +186,8 @@ do
         -- table along with context informations
         table.insert(events[event], {
             ctx = GetCtx(),
-            fn  = fn
+            fn  = fn,
+            persistent = persistent
         })
     end
 
@@ -226,7 +227,12 @@ do
         for _, handlers in pairs(events) do
             for idx, handler in ipairs(handlers) do
                 if handler.ctx == ctx then
-                    table.remove(handlers, idx)
+                    if handler.persistent then
+                        -- Handler is persistant, inherited by ctx 0
+                        handler.ctx = 0
+                    else
+                        table.remove(handlers, idx)
+                    end
                 end
             end
         end
