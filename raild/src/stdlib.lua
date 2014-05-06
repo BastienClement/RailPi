@@ -75,12 +75,6 @@ do
 
     -- Switch to a new context and store the old one on the stack
     function SwitchCtx(new_ctx)
-        -- Switching to a no longer available ctx
-        -- Alias it to 0
-        if not ctxs[new_ctx] then
-            new_ctx = 0
-        end
-
         -- Checks that the targeted context is allowed as a
         -- script context
         if IsCtxAllowed(new_ctx) then
