@@ -2,6 +2,9 @@
 local bind = __rd_bind
 __rd_bind  = nil
 
+-- Alias the original print() as trace()
+local trace = print
+
 -------------------------------------------------------------------------------
 -- Contexts manager
 -------------------------------------------------------------------------------
@@ -49,6 +52,11 @@ do
         return ctxs[ctx] or "UNKNOWN"
     end
 
+    -- Registers a context deallocation handler
+    function RegisterDealloc(handler)
+        table.insert(freehandlers, handler)
+    end
+
     --
     -- Context stack management
     --
@@ -73,7 +81,7 @@ do
             ctxStack[#ctxStack + 1] = GetCtx()
             ctx = new_ctx
         else
-            error("attempted to switch to a forbidden script context")
+            error("attempted to switch to a forbidden context type")
         end
     end
 
@@ -83,9 +91,10 @@ do
 
         -- Checks that the stack is not empty
         if top > 0 then
-            local ctx = ctxStack[top]
-            set_ctx(ctx)
+            ctx = ctxStack[top]
             table.remove(ctxStack, top)
+        else
+            error("attempted to restore the previous context despite an empty context stack")
         end
     end
 end
@@ -97,9 +106,6 @@ do
     -- void send(data, fd)
     local send_internal = __rd_send
     __rd_send = nil
-
-    -- Alias the original print() as trace()
-    local trace = print
 
     -- Print is now context-aware and send() data
     -- to API client when called from an API context
