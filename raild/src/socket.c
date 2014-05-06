@@ -5,6 +5,10 @@
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 
+/**
+ * TCP/IP server socket management
+ */
+
 static int sockfd;
 
 #define BUFFER_MAX_LEN 4096

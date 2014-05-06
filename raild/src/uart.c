@@ -3,6 +3,10 @@
 #include <termios.h>
 #include <hub_opcodes.h>
 
+/**
+ * Handle UART communication between Raild and RailHub
+ */
+
 #define UART_DEBUG  1
 #if UART_DEBUG
 #define TRACE(msg) logger("UART", "trace: " msg);
