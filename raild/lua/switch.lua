@@ -67,7 +67,7 @@ function CreateAutoSwitch(sid, sen1, sen2, sen3)
         -- If not locked, then send to RailHub
         if not self.locked then
             SetSwitch(sid, self.state)
-        else if not silent then
+        elseif not silent then
             error("attempted to set a locked switch")
         end
     end
