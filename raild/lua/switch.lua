@@ -1,7 +1,7 @@
 -- List of switches defined
 local switches = {}
 
--- Bind the event handler on first CreateAutoSwitch() call
+-- Bind the event handler on first CreateSmartSwitch() call
 local DoBind
 do
     local bound = false
@@ -25,10 +25,10 @@ end
 --      | |
 --      (3)
 --
-function CreateAutoSwitch(sid, sen1, sen2, sen3)
+function CreateSmartSwitch(sid, sen1, sen2, sen3)
     -- Check if this switch is already registered
     if switches[sid] then
-        error("called CreateAutoSwitch with an already registered switchID")
+        error("called CreateSmartSwitch with an already registered switchID")
     end
 
     -- Bind event handler if not already done
