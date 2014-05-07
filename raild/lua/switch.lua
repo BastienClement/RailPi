@@ -8,7 +8,7 @@ do
     function DoBind()
         if bound then return else bound = true end
         On("SensorChanged", function(sid, state)
-            for sid, switch in pairs(switches) do
+            for _, switch in pairs(switches) do
                 switch:handleEvent(sid, state)
             end
         end)
