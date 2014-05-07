@@ -5,7 +5,7 @@ local switches = {}
 local DoBind
 do
     local bound = false
-    local function DoBind()
+    function DoBind()
         if bound then return else bound = true end
         On("SensorChanged", function(sid, state)
             for sid, switch in pairs(switches) do

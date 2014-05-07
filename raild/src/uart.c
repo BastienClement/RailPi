@@ -7,7 +7,7 @@
  * Handle UART communication between Raild and RailHub
  */
 
-#define UART_DEBUG  1
+#define UART_DEBUG  0
 #if UART_DEBUG
 #define TRACE(msg) logger("UART", "trace: " msg);
 #else
@@ -105,12 +105,13 @@ static void uart_process(rbyte *buffer, int len) {
                         set_hub_readiness(true);
                     break;
 
-                    case SENSORS_1: state = UART_PROCESS_SENSORS1; break;
-                    case SENSORS_2: state = UART_PROCESS_SENSORS2; break;
-                    case SENSORS_3: state = UART_PROCESS_SENSORS3; break;
-                    case SWITCHES:  state = UART_PROCESS_SWITCHES; break;
+                    case SENSORS_1: TRACE("SENSORS_1"); state = UART_PROCESS_SENSORS1; break;
+                    case SENSORS_2: TRACE("SENSORS_2"); state = UART_PROCESS_SENSORS2; break;
+                    case SENSORS_3: TRACE("SENSORS_3"); state = UART_PROCESS_SENSORS3; break;
+                    case SWITCHES:  TRACE("SENSORS_4"); state = UART_PROCESS_SWITCHES; break;
 
                     case KEEP_ALIVE:
+                        TRACE("KEEP_ALIVE");
                         keep_alive_missing = false;
                         uart_put(KEEP_ALIVE);
                     break;
