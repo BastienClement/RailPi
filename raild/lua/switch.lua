@@ -84,16 +84,34 @@ function CreateAutoSwitch(sid, sen1, sen2, sen3)
         if sen == sen1
         or sen == sen2
         or sen == sen3 then
-            if self.locked and sen == self.exit_sensor then
-                -- Falling or rising edge on exit sensor
-                if not state then
-                    -- Falling edge, delay unlock by 500ms
-                    delayTimer = CreateTimer(500, 0, function()
-                        switch:unlock()
-                    end)
+            if self.locked then
+                if sen == self.exit_sensor then
+                    -- Falling or rising edge on exit sensor
+                    if not state then
+                        -- Falling edge, delay unlock by 500ms
+                        delayTimer = CreateTimer(500, 0, function()
+                            switch:unlock()
+                        end)
+                    else
+                        -- Rising edge, cancel the unlock delay
+                        CancelTimer(delayTimer)
+                    end
                 else
-                    -- Rising edge, cancel the unlock delay
-                    CancelTimer(delayTimer)
+                    if state then
+                        -- Rising edge on bad sensor
+                        local bad_sensor
+                        if self.exit_sensor == sen3 then
+                            bad_sensor = self.state and sen1 or sen2
+                        else
+                            bad_sensor = self.exit_sensor == sen2 and sen1 or sen2
+                        end
+                        if sen == bad_sensor then
+                            -- The current train has nothing to do with this
+                            -- sensor, power-offing
+                            SetPower(false)
+                            print("detected activity on bad sensorID, power-offing")
+                        end
+                    end
                 end
             elseif state then
                 -- Rising edge on any sensor
