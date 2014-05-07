@@ -147,96 +147,133 @@ do
 end
 
 -------------------------------------------------------------------------------
--- Events
+-- EventEmitter
 -------------------------------------------------------------------------------
 do
-    -- List of registered event handlers
-    local events = {}
+    -- List of all registered event emitters
+    local emitters = {}
 
-    --
-    -- Dispatch event to registered handlers
-    --
-    bind("DispatchEvent", function(event, ...)
-        -- This event has nothing registered to it
-        if not events[event] then return end
+    -- Set emitters as weak values
+    setmetatable(emitters, { ["__mode"] = "k"})
 
-        -- Loops over every handlers
-        for _, handler in ipairs(events[event]) do
-            -- Safe call, error in one handler should not prevent
-            -- others to be run correctly
-            SwitchCtx(handler.ctx)
-            local success, error = pcall(handler.fn, ...)
-            RestoreCtx()
-            if not success then
-                print("[LUA]\t Error while dispatching event: " .. error)
+    function EventEmitter(obj)
+        -- Optional parameter
+        obj = obj or {}
+
+        -- List of registered event handlers
+        local events = {}
+
+        --
+        -- Emits an event
+        --
+        function obj:Emit(event, ...)
+            -- This event has nothing registered to it
+            if not events[event] then return end
+
+            -- Loops over every handlers
+            for _, handler in ipairs(events[event]) do
+                -- Safe call, error in one handler should not prevent
+                -- others to be run correctly
+                SwitchCtx(handler.ctx)
+                local success, error = pcall(handler.fn, ...)
+                RestoreCtx()
+                if not success then
+                    print("[LUA]\t Error while dispatching event: " .. error)
+                end
             end
         end
-    end)
 
-    --
-    -- Attaches a new handler to an event
-    --
-    function On(event, fn, persistent)
-        -- First time an event is registered
-        if not events[event] then
-            events[event] = {}
+        --
+        -- Attaches a new handler to an event
+        --
+        function obj:On(event, fn, persistent)
+            -- First time an event is registered
+            if not events[event] then
+                events[event] = {}
+            end
+
+            -- Adds this function to the event handler
+            -- table along with context informations
+            table.insert(events[event], {
+                ctx = GetCtx(),
+                fn  = fn,
+                persistent = persistent
+            })
         end
 
-        -- Adds this function to the event handler
-        -- table along with context informations
-        table.insert(events[event], {
-            ctx = GetCtx(),
-            fn  = fn,
-            persistent = persistent
-        })
-    end
+        --
+        -- Detach a function previously registered with On
+        --
+        -- If the fn argument is nil, disables every handlers
+        -- registered from the current context on this event
+        --
+        function obj:Off(event, fn)
+            -- Nothing registered to this event, so obviously
+            -- nothing to remove...
+            if not events[event] then return end
 
-    --
-    -- Detach a function previously registered with On
-    --
-    -- If the fn argument is nil, disables every handlers
-    -- registered from the current context on this event
-    --
-    function Off(event, fn)
-        -- Nothing registered to this event, so obviously
-        -- nothing to remove...
-        if not events[event] then return end
+            -- Current script context
+            local ctx = GetCtx();
 
-        -- Current script context
-        local ctx = GetCtx();
-
-        -- Check matching handler
-        for idx, handler in ipairs(events[event]) do
-            if fn then
-                if handler.fn == fn then
+            -- Check matching handler
+            for idx, handler in ipairs(events[event]) do
+                if fn then
+                    if handler.fn == fn then
+                        table.remove(events[event], idx)
+                    end
+                elseif handler.ctx == ctx then
                     table.remove(events[event], idx)
                 end
-            elseif handler.ctx == ctx then
-                table.remove(events[event], idx)
             end
         end
-    end
 
-    --
-    -- Function called when a file descriptor is deallocated
-    --
-    -- This functions checks every handlers and removes
-    -- those registered from that context
-    --
-    RegisterDealloc(function(ctx)
-        for _, handlers in pairs(events) do
-            for idx, handler in ipairs(handlers) do
-                if handler.ctx == ctx then
-                    if handler.persistent then
-                        -- Handler is persistant, inherited by ctx 0
-                        handler.ctx = 0
-                    else
-                        table.remove(handlers, idx)
+        --
+        -- Function called when a file descriptor is deallocated
+        --
+        -- This functions checks every handlers and removes those
+        -- registered from that context
+        --
+        function obj:EventCtxCleanup(ctx)
+            for _, handlers in pairs(events) do
+                for idx, handler in ipairs(handlers) do
+                    if handler.ctx == ctx then
+                        if handler.persistent then
+                            -- Handler is persistent, inherited by ctx 0
+                            handler.ctx = 0
+                        else
+                            table.remove(handlers, idx)
+                        end
                     end
                 end
             end
         end
+
+        -- Register emitter and return
+        emitters[obj] = true
+        return obj
+    end
+
+    --
+    -- Cleanup every emitters
+    --
+    RegisterDealloc(function(ctx)
+        for emitter, _ in pairs(emitters) do
+            emitter:EventCtxCleanup(ctx)
+        end
     end)
+end
+
+-------------------------------------------------------------------------------
+-- C-Events
+-------------------------------------------------------------------------------
+do
+    -- EventEmitter object for C-events
+    local cEvents = {}
+
+    -- Global API
+    bind("DispatchEvent", cEvents.emit)
+    function On(...) cEvents:On(...) end
+    function Off(...) cEvents:Off(...) end
 end
 
 -------------------------------------------------------------------------------
