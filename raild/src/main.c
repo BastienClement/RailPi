@@ -13,9 +13,9 @@
 
 int main(int argc, char **argv) {
     logger("RAILD", "Starting raild...");
+    parse_options(argc, argv);
 
     // --- SETUP ---
-
     // GPIO
     setup_gpio();
 
@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     raild_epoll_create();
 
     // Lua
-    setup_lua((argc > 1) ? argv[1] : NULL);
+    setup_lua(options.lua_init ? argv[options.lua_init] : NULL);
 
     // UART
     setup_uart();

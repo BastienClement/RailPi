@@ -53,6 +53,13 @@ typedef struct raild_event_t {
 // A single byte of 8-bit used for communication with RailHub
 typedef unsigned char rbyte;
 
+typedef struct {
+    const bool sim;
+    const int  lua_init;
+} options_t;
+
+extern options_t options;
+
 //---------------------------------------------------------------------------//
 // SETUP
 //---------------------------------------------------------------------------//
@@ -60,6 +67,8 @@ void setup_socket();
 void setup_uart();
 void setup_gpio();
 void setup_lua(const char *main);
+
+void parse_options(int argc, char **argv);
 
 //---------------------------------------------------------------------------//
 // GPIO
