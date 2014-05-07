@@ -72,6 +72,11 @@ function CreateSmartSwitch(sid, sen1, sen2, sen3)
         end
     end
 
+    -- Toggle switch state
+    function switch:toggle(silent)
+        self:set(not self.state, silent)
+    end
+
     -- Define the callback handler when sensor3 is enabled
     function switch:setHandler(fn)
         self.handler = fn
