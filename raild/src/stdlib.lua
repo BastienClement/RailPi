@@ -271,7 +271,7 @@ do
     local cEvents = EventEmitter()
 
     -- Global API
-    bind("DispatchEvent", cEvents.Emit)
+    bind("DispatchEvent", function(event, ...) cEvents:Emit(event, ...) end)
     function On(...) return cEvents:On(...) end
     function Off(...) return cEvents:Off(...) end
 end
