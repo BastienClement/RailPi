@@ -128,8 +128,8 @@ void lua_delete_timer(void *timer);
 void lua_oninit();
 void lua_onready();
 void lua_ondisconnect();
-void lua_onsensorchanged(int sensorid, bool state);
-void lua_onswitchchanged(int switchid, bool state);
+void lua_onsensorchange(int sensorid, bool state);
+void lua_onswitchchange(int switchid, bool state);
 
 //---------------------------------------------------------------------------//
 // Logger

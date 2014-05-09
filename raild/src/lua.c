@@ -137,6 +137,14 @@ void lua_handle_timer(raild_event *event) {
 //---------------------------------------------------------------------------//
 
 /**
+ * Init event
+ */
+void lua_oninit() {
+    prepare_event("Init");
+    dispatch(0);
+}
+
+/**
  * Ready event
  * Fired ever time the RailHub sends a READY opcode
  */
@@ -159,8 +167,8 @@ void lua_ondisconnect() {
  * Sensor changed event
  * Fired when any of the 24 sensors changes state
  */
-void lua_onsensorchanged(int sensorid, bool state) {
-    prepare_event("SensorChanged");
+void lua_onsensorchange(int sensorid, bool state) {
+    prepare_event("SensorChange");
     lua_pushnumber(L, sensorid);
     lua_pushboolean(L, state);
     dispatch(2);
@@ -170,19 +178,11 @@ void lua_onsensorchanged(int sensorid, bool state) {
  * Switch changed event
  * Fired when any of the 8 switches changes state
  */
-void lua_onswitchchanged(int switchid, bool state) {
-    prepare_event("SwitchChanged");
+void lua_onswitchchange(int switchid, bool state) {
+    prepare_event("SwitchChange");
     lua_pushnumber(L, switchid);
     lua_pushboolean(L, state);
     dispatch(2);
-}
-
-/**
- * Init event
- */
-void lua_oninit() {
-    prepare_event("Init");
-    dispatch(0);
 }
 
 //---------------------------------------------------------------------------//
