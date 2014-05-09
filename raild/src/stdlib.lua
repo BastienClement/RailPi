@@ -268,12 +268,12 @@ end
 -------------------------------------------------------------------------------
 do
     -- EventEmitter object for C-events
-    local cEvents = {}
+    local cEvents = EventEmitter()
 
     -- Global API
-    bind("DispatchEvent", cEvents.emit)
-    function On(...) cEvents:On(...) end
-    function Off(...) cEvents:Off(...) end
+    bind("DispatchEvent", cEvents.Emit)
+    function On(...) return cEvents:On(...) end
+    function Off(...) return cEvents:Off(...) end
 end
 
 -------------------------------------------------------------------------------
