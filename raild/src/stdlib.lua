@@ -97,6 +97,9 @@ do
             error("attempted to restore the previous context despite an empty context stack")
         end
     end
+
+    bind("SwitchContext", SwitchCtx)
+    bind("RestoreCtx", RestoreCtx)
 end
 
 -------------------------------------------------------------------------------

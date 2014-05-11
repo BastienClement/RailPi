@@ -119,8 +119,8 @@ void lua_eval(const char *buffer, size_t length);
 
 void lua_alloc_context(int fd, const char *cls);
 void lua_dealloc_context(int fd);
-void lua_set_context(int fd);
-void lua_clear_context();
+void lua_switch_context(int fd);
+void lua_restore_context();
 
 void lua_handle_timer(raild_event *event);
 void lua_delete_timer(void *timer);

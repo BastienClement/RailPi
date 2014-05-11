@@ -107,22 +107,6 @@ void setup_lua(const char *main) {
 }
 
 /**
- * Sets the current script context
- */
-void lua_set_context(int fd) {
-    lua_pushnumber(L, fd);
-    lua_setfield(L, LUA_REGISTRYINDEX, "context_fd");
-}
-
-/**
- * Removes the script context
- */
-void lua_clear_context() {
-    lua_pushnil(L);
-    lua_setfield(L, LUA_REGISTRYINDEX, "context_fd");
-}
-
-/**
  * Runs a specific buffer of Lua code
  * Called from the TCP/IP API to run client code
  */
@@ -222,6 +206,23 @@ void lua_dealloc_context(int fd) {
     prepare_event_internal("DeallocContext");
     lua_pushnumber(L, fd);
     call(1, 0);
+}
+
+/**
+ * Sets the current script context
+ */
+void lua_switch_context(int fd) {
+    prepare_event_internal("SwitchContext");
+    lua_pushnumber(L, fd);
+    call(1, 0);
+}
+
+/**
+ * Removes the script context
+ */
+void lua_restore_context() {
+    prepare_event_internal("RestoreCtx");
+    call(0, 0);
 }
 
 /**

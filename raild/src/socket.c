@@ -103,9 +103,9 @@ void socket_handle_client(raild_event *event) {
     for(int i = 0; i < length; i++) {
         if(buffer[i] == '\f') {
             if(i > 0) {
-                lua_set_context(event->fd);
+                lua_switch_context(event->fd);
                 lua_eval(buffer, i);
-                lua_clear_context();
+                lua_restore_context();
             }
 
             buffer += i + 1;
