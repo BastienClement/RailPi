@@ -96,6 +96,14 @@ var map = [
 
 var mapScale = 4;
 
+var switches = {};
+
+map.forEach(function(segment) {
+    if(segment.t_switch) {
+        switches[segment.id] = segment;
+    }
+});
+
 var drawMap = (function() {
     var canvas = document.getElementById("map");
     var ctx = canvas.getContext("2d");
