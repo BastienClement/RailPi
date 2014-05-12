@@ -45,7 +45,6 @@ do
 
     function JSON:Encode(obj)
         local t = type(obj)
-        print(t)
         if t == "nil" then
             return "null"
         elseif t == "boolean" then
