@@ -236,7 +236,7 @@ do
         -- This functions checks every handlers and removes those
         -- registered from that context
         --
-        function obj:EventCtxCleanup(ctx)
+        emitters[obj] = function(ctx)
             for _, handlers in pairs(events) do
                 for idx, handler in ipairs(handlers) do
                     if handler.ctx == ctx then
@@ -251,8 +251,6 @@ do
             end
         end
 
-        -- Register emitter and return
-        emitters[obj] = true
         return obj
     end
 
@@ -260,8 +258,8 @@ do
     -- Cleanup every emitters
     --
     RegisterDealloc(function(ctx)
-        for emitter, _ in pairs(emitters) do
-            emitter:EventCtxCleanup(ctx)
+        for emitter, cleanup in pairs(emitters) do
+            cleanup(ctx)
         end
     end)
 end
