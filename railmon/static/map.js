@@ -1,95 +1,158 @@
 var map = [
-	{
-		t_switch: [195, 60],
-		flip: true, state: 0
-	},
-	{
-		tracks: [
-			[195, 70],
-			[195, 85],
-			[155, 125],
-			[140, 125],
-		]
-	},
-	{
-		tracks: [
-			[185, 70],
-			[160, 95],
-		]
-	},
-	{
-		t_switch: [150, 105],
-		diagon: true, flip: true, state: 0
-	},
-	{
-		tracks: [
-			[140, 105],
-			[100, 105],
-		]
-	},
-	{
-		t_switch: [90, 105],
-		rotate: 3, state: 1
-	},
-	{
-		t_switch: [130, 125],
-		rotate: 3, state: 0
-	},
-	{
-		tracks: [
-			[120, 125],
-			[35, 125],
-			[0, 95],
-			[0, 50],
-			[30, 20],
-			[50, 20],
-		]
-	},
-	{
-		tracks: [
-			[70,20],
-			[115,20],
-			[135,0],
-			[175,0],
-			[195,20],
-			[195,50]
-		]
-	},
-	{
-		t_switch: [60, 20],
-		rotate: 1, state: 0
-	},
-	{
-		tracks: [
-			[50,30],
-			[30,50],
-			[30,85],
-			[50,105],
-			[80,105]
-		]
-	},
-	{
-		tracks: [
-			[100,95],
-			[115,80],
-		]
-	},
-	{
-		t_switch: [125, 70], rotate: 3,
-		diagon: true, state: 0
-	},
-	{
-		tracks: [
-			[135, 60],
-			[170, 25],
-		]
-	},
-	{
-		tracks: [
-			[125, 60],
-			[165, 20],
-		]
-	}
+    {
+        // Right
+        t_switch: [175, 50],
+        flip: true, state: 0,
+        id: 2
+    },
+    {
+        // Bottom right, outer
+        tracks: [
+            [175, 60],
+            [175, 75],
+            [135, 115],
+            [120, 115],
+        ]
+    },
+    {
+        // Bottom right, inner
+        tracks: [
+            [165, 60],
+            [140, 85],
+        ]
+    },
+    {
+        // Middle right
+        t_switch: [130, 95],
+        diagon: true, flip: true, state: 0,
+        id: 4
+    },
+    {
+        // Middle
+        tracks: [
+            [120, 95],
+            [80, 95],
+        ]
+    },
+    {
+        // Middle left
+        t_switch: [70, 95],
+        rotate: 3, state: 1,
+        id: 3
+    },
+    {
+        // Bottom
+        t_switch: [110, 115],
+        rotate: 3, state: 0,
+        id: 5
+    },
+    {
+        // Left, outer
+        tracks: [
+            [100, 115],
+            [35, 115],
+            [0, 85],
+            [0, 50],
+            [30, 20],
+            [50, 20],
+        ]
+    },
+    {
+        // Top right
+        tracks: [
+            [70,20],
+            [95,20],
+            [115,0],
+            [155,0],
+            [175,20],
+            [175,40]
+        ]
+    },
+    {
+        // Top left
+        t_switch: [60, 20],
+        rotate: 1, state: 0,
+        id: 1
+    },
+    {
+        // Left, inner
+        tracks: [
+            [50,30],
+            [30,50],
+            [30,75],
+            [50,95],
+            [60,95]
+        ]
+    },
+    {
+        // Middle inside
+        tracks: [
+            [80,85],
+            [95,70],
+            [130,35],
+        ]
+    }
 ];
 
 var mapScale = 4;
+
+var drawMap = (function() {
+    var canvas = document.getElementById("map");
+    var ctx = canvas.getContext("2d");
+
+    ctx.translate(10, 10);
+    ctx.strokeStyle = "#FFF";
+    ctx.lineWidth = 10;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    function drawMap() {
+        ctx.clearRect(-10, -10, canvas.width, canvas.height);
+        map.forEach(function(segment) {
+            if(segment.tracks) {
+                ctx.beginPath();
+                segment.tracks.forEach(function(track, i) {
+                    if(i < 1) {
+                        ctx.moveTo(track[0]*mapScale, track[1]*mapScale);
+                    } else {
+                        ctx.lineTo(track[0]*mapScale, track[1]*mapScale);
+                    }
+                });
+                ctx.strokeStyle = "#eee";
+                ctx.stroke();
+            } else if(segment.t_switch) {
+                ctx.save();
+
+                var sX = mapScale * (segment.flip ? -1 : 1);
+                var sY = mapScale;
+
+                ctx.translate(segment.t_switch[0]*mapScale, segment.t_switch[1]*mapScale);
+                ctx.rotate(Math.PI * (segment.rotate || 0) / 2);
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(segment.diagon ? 10*sX : 0, 10*sY);
+                ctx.strokeStyle = (segment.state ? "rgba(255,255,255,0.5)" : "#FFF");
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(segment.diagon ? -10*sX : 0, -10*sY);
+                ctx.strokeStyle = "#eee"
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(10*sX, segment.diagon ? 0: 10*sY);
+                ctx.strokeStyle = (segment.state ? "#FFF" : "rgba(255,255,255,0.5)");
+                ctx.stroke();
+
+                ctx.lineWidth = 10;
+                ctx.restore();
+            }
+        });
+    }
+
+    drawMap();
+    return drawMap;
+})();

@@ -39,13 +39,13 @@ h1 {
     width: 300px;
     position: absolute;
     top: 20px;
-    left: 15px;
+    left: 20px;
 }
 
 #map {
     position: absolute;
-    top: 20px;
-    left: 10px;
+    top: 50px;
+    left: 50px;
 }
 
 #clock_canvas {
