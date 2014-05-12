@@ -17,15 +17,15 @@ end
 
 -- Creates a new auto-managed switch object
 --
---      (1) (2)
+--      (A) (B)
 --      | |/ /
 --      | / /     STATE      EXIT
---      |/ /      false      (1)
---      | /       true       (2)
+--      |/ /      false      (A)
+--      | /       true       (B)
 --      | |
---      (3)
+--      (C)
 --
-function CreateSwitch(sid, sen1, sen2, sen3)
+function CreateSwitch(sid, senA, senB, senC)
     -- Check if this switch is already registered
     if switches[sid] then
         error("called CreateSmartSwitch with an already registered switchID")
@@ -83,9 +83,9 @@ function CreateSwitch(sid, sen1, sen2, sen3)
     local delayTimer
     switches[sid] = function(sen, state)
         -- Only react to related sensors
-        if sen == sen1
-        or sen == sen2
-        or sen == sen3 then
+        if sen == senA
+        or sen == senB
+        or sen == senC then
             if switch.locked then
                 if sen == switch.exit_sensor then
                     -- Falling or rising edge on exit sensor
@@ -102,10 +102,10 @@ function CreateSwitch(sid, sen1, sen2, sen3)
                     if state then
                         -- Rising edge on bad sensor
                         local bad_sensor
-                        if switch.exit_sensor == sen3 then
-                            bad_sensor = switch.state and sen1 or sen2
+                        if switch.exit_sensor == senC then
+                            bad_sensor = switch.state and senA or senB
                         else
-                            bad_sensor = switch.exit_sensor == sen2 and sen1 or sen2
+                            bad_sensor = switch.exit_sensor == senB and senA or senB
                         end
                         if sen == bad_sensor then
                             -- The current train has nothing to do with this
@@ -118,20 +118,20 @@ function CreateSwitch(sid, sen1, sen2, sen3)
                 end
             elseif state then
                 -- Rising edge on any sensor
-                if sen == sen1 then
-                    -- (1) -> (3)
+                if sen == senA then
+                    -- (A) -> (C)
                     switch:Lock(false, 3)
                     switch:Emit("Enter1", state, exit)
-                elseif sen == sen2 then
-                    -- (2) -> (3)
+                elseif sen == senB then
+                    -- (B) -> (C)
                     switch:Lock(true, 3)
                     switch:Emit("Enter2", state, exit)
                 else
-                    -- (3) -> (1|2)
+                    -- (C) -> (A|B)
                     switch:Emit("Enter3", state, exit)
 
                     -- Then lock it to the current state
-                    switch:Lock(switch.state, switch.state and sen1 or sen2)
+                    switch:Lock(switch.state, switch.state and senA or senB)
                 end
             end
         end
