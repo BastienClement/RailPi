@@ -79,7 +79,7 @@ void set_hub_state(rhub_port port, rbyte value) {
             if(sensor_state != shadow_state) {
                 if(sensors_base < 0) {
                     // -1 base is used to identify the switches-port
-                    lua_onswitchchange(i, !!sensor_state);
+                    lua_onswitchchange(i + 1, !!sensor_state);
                 } else {
                     // ... else it's a regular sensors-port
                     lua_onsensorchange(sensors_base + i, !!sensor_state);
