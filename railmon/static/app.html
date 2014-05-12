@@ -1,69 +1,75 @@
 <!DOCTYPE html>
 
 <link rel="stylesheet" type="text/css" href="styles.css"></link>
+<script src="jquery.js"></script>
 <script src="map.js"></script>
 
 <div id="screen">
-	<canvas id="map" width="890" height="620"></canvas>
+    <audio id="clock_tick" src="clock_tick.wav" autobuffer="true" preload="auto"></audio>
+    <canvas id="clock_canvas" width="500" height="500"></canvas>
+    <canvas id="map" width="890" height="620"></canvas>
+    <img id="logo" src="logo.png">
 
-	<script>
-		var ctx = document.getElementById("map").getContext("2d");
-		
-		ctx.translate(55, 60);
-		ctx.strokeStyle = "#FFF";
-		ctx.lineWidth = 10;
-		ctx.lineCap = "round";
-		ctx.lineJoin = "round";
-		
-		function drawMap() {
-			map.forEach(function(segment) {
-				if(segment.tracks) {
-					ctx.beginPath();
-					segment.tracks.forEach(function(track, i) {
-						if(i < 1) {
-							ctx.moveTo(track[0]*mapScale, track[1]*mapScale);
-						} else {
-							ctx.lineTo(track[0]*mapScale, track[1]*mapScale);
-						}
-					});
-					ctx.strokeStyle = "#FFF";
-					ctx.stroke();
-				} else if(segment.t_switch) {
-					ctx.save();
-					
-					var sX = mapScale * (segment.flip ? -1 : 1);
-					var sY = mapScale;
-					
-					ctx.translate(segment.t_switch[0]*mapScale, segment.t_switch[1]*mapScale);
-					ctx.rotate(Math.PI * (segment.rotate || 0) / 2);
-					
-					ctx.beginPath();
-					ctx.moveTo(0, 0);
-					ctx.lineTo(segment.diagon ? 10*sX : 0, 10*sY);
-					ctx.strokeStyle = (segment.state ? "rgba(255,255,255,0.5)" : "#FFF");
-					ctx.stroke();
-					
-					ctx.beginPath();
-					ctx.moveTo(0, 0);
-					ctx.lineTo(segment.diagon ? -10*sX : 0, -10*sY);
-					ctx.strokeStyle = "#FFF"
-					ctx.stroke();
-					
-					ctx.beginPath();
-					ctx.moveTo(0, 0);
-					ctx.lineTo(10*sX, segment.diagon ? 0: 10*sY);
-					ctx.strokeStyle = (segment.state ? "#FFF" : "rgba(255,255,255,0.5)");
-					ctx.stroke();
-					
-					ctx.lineWidth = 10;
-					ctx.restore();
-				}
-			});
-		}
-		
-		drawMap();
-		
-		//ctx.fillStyle = "red";
-		//ctx.fillRect(300, 25, 100, 100);
-	</script>
+    <script>
+        var ctx = document.getElementById("map").getContext("2d");
+
+        ctx.translate(55, 60);
+        ctx.strokeStyle = "#FFF";
+        ctx.lineWidth = 10;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+
+        function drawMap() {
+            map.forEach(function(segment) {
+                if(segment.tracks) {
+                    ctx.beginPath();
+                    segment.tracks.forEach(function(track, i) {
+                        if(i < 1) {
+                            ctx.moveTo(track[0]*mapScale, track[1]*mapScale);
+                        } else {
+                            ctx.lineTo(track[0]*mapScale, track[1]*mapScale);
+                        }
+                    });
+                    ctx.strokeStyle = "#eee";
+                    ctx.stroke();
+                } else if(segment.t_switch) {
+                    ctx.save();
+
+                    var sX = mapScale * (segment.flip ? -1 : 1);
+                    var sY = mapScale;
+
+                    ctx.translate(segment.t_switch[0]*mapScale, segment.t_switch[1]*mapScale);
+                    ctx.rotate(Math.PI * (segment.rotate || 0) / 2);
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(segment.diagon ? 10*sX : 0, 10*sY);
+                    ctx.strokeStyle = (segment.state ? "rgba(255,255,255,0.5)" : "#FFF");
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(segment.diagon ? -10*sX : 0, -10*sY);
+                    ctx.strokeStyle = "#eee"
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(10*sX, segment.diagon ? 0: 10*sY);
+                    ctx.strokeStyle = (segment.state ? "#FFF" : "rgba(255,255,255,0.5)");
+                    ctx.stroke();
+
+                    ctx.lineWidth = 10;
+                    ctx.restore();
+                }
+            });
+        }
+
+        drawMap();
+
+        //ctx.fillStyle = "red";
+        //ctx.fillRect(300, 25, 100, 100);
+    </script>
 </div>
+
+<script src="clock.js"></script>
