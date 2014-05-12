@@ -35,24 +35,25 @@ function CreateSwitch(sid, sen1, sen2, sen3)
     DoBind()
 
     -- Switch object
-    local switch = {
+    local switch = EventEmitter({
         ["locked"] = false,
         ["exit_sensor"] = -1,
-        ["state"] = false,
-        ["handler"] = nil
-    }
+        ["state"] = false
+    })
 
     -- Lock this switch in a given position
     function switch:Lock(state, exit)
         self:Set(state)
         self.locked = true
         self.exit_sensor = exit
+        self:Emit("Lock", state, exit)
     end
 
     -- Free the previously set lock
     function switch:Unlock()
         self.locked = false
         self.exit_sensor = -1
+        self:Emit("Unlock")
     end
 
     -- Set the switch in a given position
@@ -67,6 +68,7 @@ function CreateSwitch(sid, sen1, sen2, sen3)
         -- If not locked, then send to RailHub
         if not self.locked then
             SetSwitch(sid, self.state)
+            self:Emit("Set", state)
         elseif not silent then
             error("attempted to set a locked switch")
         end
@@ -75,11 +77,6 @@ function CreateSwitch(sid, sen1, sen2, sen3)
     -- Toggle switch state
     function switch:Toggle(silent)
         self:Set(not self.state, silent)
-    end
-
-    -- Define the callback handler when sensor3 is enabled
-    function switch:SetHandler(fn)
-        self.handler = fn
     end
 
     -- Register this switch and its event handler
@@ -115,6 +112,7 @@ function CreateSwitch(sid, sen1, sen2, sen3)
                             -- sensor, power-offing
                             SetPower(false)
                             print("detected activity on bad sensorID, power-offing")
+                            switch:Emit("BadSensor", sen)
                         end
                     end
                 end
@@ -123,15 +121,14 @@ function CreateSwitch(sid, sen1, sen2, sen3)
                 if sen == sen1 then
                     -- (1) -> (3)
                     switch:Lock(false, 3)
+                    switch:Emit("Enter1", state, exit)
                 elseif sen == sen2 then
                     -- (2) -> (3)
                     switch:Lock(true, 3)
+                    switch:Emit("Enter2", state, exit)
                 else
                     -- (3) -> (1|2)
-                    if switch.handler then
-                        -- Call handler to set the switch
-                        switch.handler()
-                    end
+                    switch:Emit("Enter3", state, exit)
 
                     -- Then lock it to the current state
                     switch:Lock(switch.state, switch.state and sen1 or sen2)
@@ -143,6 +140,7 @@ function CreateSwitch(sid, sen1, sen2, sen3)
     -- Destroys a SmartSwitch
     -- The object should not be used afterward
     function switch:Disable()
+        self:Emit("Disable", state, exit)
         switches[sid] = nil
     end
 
