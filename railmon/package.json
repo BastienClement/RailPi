@@ -1,12 +1,12 @@
 {
-  "name": "RailMon",
-  "version": "0.1.0",
-  "description": "A monitoring webapp for Raild",
-  "main": "app.js",
-  "dependencies": {
-    "express": "*"
-  },
-  "devDependencies": {},
-  "author": "",
-  "license": "MIT"
+    "name": "RailMon",
+    "version": "0.1.0",
+    "description": "A monitoring application for Raild",
+    "main": "app.js",
+    "dependencies": {
+        "express": "*",
+        "ws": "*",
+        "serve-index": "*"
+    },
+    "private": true
 }
