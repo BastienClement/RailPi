@@ -1,4 +1,4 @@
-local s1 = CreateSmartSwitch(1, 0, 0, 0)
+local s1 = CreateSwitch(1, 0, 0, 0)
 
 On("SensorChange", function(sen, state)
     print("Sensor", sen, "to", state)
