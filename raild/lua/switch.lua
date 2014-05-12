@@ -7,7 +7,7 @@ do
     local bound = false
     function DoBind()
         if bound then return else bound = true end
-        On("SensorChanged", function(sid, state)
+        On("SensorChange", function(sid, state)
             for _, handler in pairs(switches) do
                 handler(sid, state)
             end
@@ -147,8 +147,8 @@ function CreateSmartSwitch(sid, sen1, sen2, sen3)
         if sen == sen1
         or sen == sen2
         or sen == sen3 then
-            if self.locked then
-                if sen == self.exit_sensor then
+            if switch.locked then
+                if sen == switch.exit_sensor then
                     -- Falling or rising edge on exit sensor
                     if not state then
                         -- Falling edge, delay unlock by 500ms
@@ -163,10 +163,10 @@ function CreateSmartSwitch(sid, sen1, sen2, sen3)
                     if state then
                         -- Rising edge on bad sensor
                         local bad_sensor
-                        if self.exit_sensor == sen3 then
-                            bad_sensor = self.state and sen1 or sen2
+                        if switch.exit_sensor == sen3 then
+                            bad_sensor = switch.state and sen1 or sen2
                         else
-                            bad_sensor = self.exit_sensor == sen2 and sen1 or sen2
+                            bad_sensor = switch.exit_sensor == sen2 and sen1 or sen2
                         end
                         if sen == bad_sensor then
                             -- The current train has nothing to do with this
@@ -180,19 +180,19 @@ function CreateSmartSwitch(sid, sen1, sen2, sen3)
                 -- Rising edge on any sensor
                 if sen == sen1 then
                     -- (1) -> (3)
-                    self:Lock(false, 3)
+                    switch:Lock(false, 3)
                 elseif sen == sen2 then
                     -- (2) -> (3)
-                    self:Lock(true, 3)
+                    switch:Lock(true, 3)
                 else
                     -- (3) -> (1|2)
-                    if self.handler then
+                    if switch.handler then
                         -- Call handler to set the switch
-                        self.handler()
+                        switch.handler()
                     end
 
                     -- Then lock it to the current state
-                    self:Lock(self.state, self.state and sen1 or sen2)
+                    switch:Lock(switch.state, switch.state and sen1 or sen2)
                 end
             end
         end
