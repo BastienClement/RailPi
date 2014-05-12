@@ -25,7 +25,7 @@ end
 --      | |
 --      (3)
 --
-function CreateSmartSwitch(sid, sen1, sen2, sen3)
+function CreateSwitch(sid, sen1, sen2, sen3)
     -- Check if this switch is already registered
     if switches[sid] then
         error("called CreateSmartSwitch with an already registered switchID")
