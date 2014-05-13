@@ -88,6 +88,10 @@ var app = express();
 
 app.set("title", "RailPi");
 
+app.get("/", function(req, res) {
+    res.redirect("/app.html");
+});
+
 app.use(directory(__dirname + '/static'))
 app.use(express.static(__dirname + '/static'))
 
