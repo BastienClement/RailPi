@@ -9,13 +9,21 @@ ws.onmessage = function(m) {
             console.log(msg);
             switch(msg.event) {
                 case "SwitchChange":
+                    if(!switches[msg.id]) return;
                     switches[msg.id].state = msg.state;
                     drawMap();
                     break;
 
                 case "SwitchLock":
                 case "SwitchUnlock":
+                    if(!switches[msg.id]) return;
                     switches[msg.id].locked = (msg.event == "SwitchLock");
+                    drawMap();
+                    break;
+
+                case "SensorChange":
+                    if(!sensors[msg.id]) return;
+                    sensors[msg.id].active = msg.state;
                     drawMap();
                     break;
             }

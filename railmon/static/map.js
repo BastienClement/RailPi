@@ -50,7 +50,7 @@ var map = [
         // Left, outer
         tracks: [
             [100, 115],
-            [35, 115],
+            [30, 115],
             [0, 85],
             [0, 50],
             [30, 20],
@@ -91,16 +91,47 @@ var map = [
             [95,70],
             [130,35],
         ]
-    }
+    },
+
+    { sensor: [50, 20], id: 1, active: false },
+    { sensor: [50, 30], id: 9, active: false },
+    { sensor: [70, 20], id: 17, active: false },
+
+    { sensor: [175, 60], id: 2, active: false },
+    { sensor: [165, 60], id: 10, active: false },
+    { sensor: [175, 40], id: 18, active: false },
+
+    { sensor: [80, 95], id: 3, active: false },
+    { sensor: [80, 85], id: 11, active: false },
+    { sensor: [60, 95], id: 19, active: false },
+
+    { sensor: [120, 105], id: 4, active: false },
+    { sensor: [120, 95], id: 12, active: false },
+    { sensor: [140, 85], id: 20, active: false },
+
+    { sensor: [120, 115], id: 5, active: false },
+    { sensor: [100, 115], id: 21, active: false },
+
+    { sensor: [125, 40], id: 6, active: false },
+    { sensor: [110, 55], id: 14, active: false },
+    { sensor: [135, 0], id: 22, active: false },
+
+    { sensor: [0, 50], id: 7, active: false },
+    { sensor: [30, 115], id: 15, active: false },
 ];
 
 var mapScale = 4;
 
 var switches = {};
+var sensors  = {};
 
 map.forEach(function(segment) {
     if(segment.t_switch) {
         switches[segment.id] = segment;
+    }
+
+    if(segment.sensor) {
+        sensors[segment.id] = segment;
     }
 });
 
@@ -170,6 +201,11 @@ var drawMap = (function() {
 
                 ctx.lineWidth = 10;
                 ctx.restore();
+            } else if(segment.sensor) {
+                ctx.beginPath();
+                ctx.strokeStyle = segment.active ? "orange" : "#eee";
+                ctx.arc(segment.sensor[0]*mapScale, segment.sensor[1]*mapScale, 3, 0, Math.PI*2, true);
+                ctx.stroke();
             }
         });
     }
