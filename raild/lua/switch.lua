@@ -120,18 +120,18 @@ function CreateSwitch(sid, senA, senB, senC)
                 -- Rising edge on any sensor
                 if sen == senA then
                     -- (A) -> (C)
-                    switch:Lock(false, 3)
-                    switch:Emit("Enter1", state, exit)
+                    switch:Lock(false, senC)
+                    switch:Emit("EnterA")
                 elseif sen == senB then
                     -- (B) -> (C)
-                    switch:Lock(true, 3)
-                    switch:Emit("Enter2", state, exit)
+                    switch:Lock(true, senC)
+                    switch:Emit("EnterB")
                 else
                     -- (C) -> (A|B)
-                    switch:Emit("Enter3", state, exit)
+                    switch:Emit("EnterC")
 
                     -- Then lock it to the current state
-                    switch:Lock(switch.state, switch.state and senA or senB)
+                    switch:Lock(switch.state, switch.state and senB or senA)
                 end
             end
         end
