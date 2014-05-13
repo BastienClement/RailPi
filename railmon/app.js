@@ -7,6 +7,7 @@ var EventEmitter = require("events").EventEmitter;
 var emitter = new EventEmitter();
 var sock_lock = false;
 var online = false;
+var sync;
 
 function socketConnect() {
     if(sock_lock) return;
@@ -18,6 +19,10 @@ function socketConnect() {
         emitter.emit("event", { type: "online" });
 
         socket.write("RailMon:Bind()\f");
+
+        sync = function() {
+            socket.write("RailMon:Sync()\f");
+        };
 
         // Buffers list
         var buffers = [];
@@ -54,6 +59,8 @@ function socketConnect() {
 
     // Reconnect to Raild
     function retry() {
+        sync = null;
+
         if(online) {
             online = false;
             emitter.emit("event", { type: "offline" });
@@ -104,6 +111,7 @@ wss.on("connection", function(ws) {
     };
 
     emitter.on("event", listener);
+    if(online) sync();
 
     ws.on("close", function() {
         emitter.removeListener("event", listener);

@@ -10,10 +10,26 @@ function RailMon:Bind()
     end)
 end
 
+-- Emit event object with proper formatting
 local function emit(event, obj)
     if not obj then obj = {} end
     obj.event = event
     RailMon:Emit("JSON", JSON:Encode(obj))
+end
+
+function RailMon:Sync()
+    local sw = {}
+    for i = 1, 8 do sw[i] = GetSwitch(i) end
+
+    local se = {}
+    for i = 1, 24 do se[i] = GetSensor(i) end
+
+    emit("Sync", {
+        switches = sw,
+        sensors = se,
+        ready = IsHubReady(),
+        power = IsPowered()
+    })
 end
 
 -------------------------------------------------------------------------------

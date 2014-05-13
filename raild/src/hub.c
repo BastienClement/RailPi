@@ -8,7 +8,7 @@
  * Since the communication with RailHub is asynchronous, everything
  * is kept in Raild memory and used when requested by Lua scripts.
  *
- * Every times something changes on one of the RailHub ports, Raild
+ * Everytime something changes on one of the RailHub ports, Raild
  * is notified and this cache is updated.
  */
 
