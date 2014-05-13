@@ -100,8 +100,8 @@ function Switch:Create(sid, senA, senB, senC)
                 if sen == switch_obj.exit_sensor then
                     -- Falling or rising edge on exit sensor
                     if not state then
-                        -- Falling edge, delay unlock by 500ms
-                        delayTimer = CreateTimer(500, 0, function()
+                        -- Falling edge, delay unlock by 100ms
+                        delayTimer = CreateTimer(100, 0, function()
                             switch_obj:Unlock()
                         end)
                     else
