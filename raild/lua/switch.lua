@@ -52,7 +52,6 @@ function Switch:Create(sid, senA, senB, senC)
 
     -- Emit events on both the switch object and the global
     local function emit(...)
-        print("emit", ...)
         switch_obj:Emit(...)
         Switch:Emit(...)
     end

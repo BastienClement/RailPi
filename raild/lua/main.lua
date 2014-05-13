@@ -27,5 +27,5 @@ local interest = { [6] = true, [7] = true, [8] = true, [14] = true, [15] = true,
 
 On("SensorChange", function(sen, state)
     --if interest[sen] then return end
-    print(sen, state)
+    --print(sen, state)
 end)
