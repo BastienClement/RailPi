@@ -25,8 +25,10 @@ static rbyte hub_sensors3 = 0x00;
 static rbyte hub_switches = 0x00;
 
 static void sync_power() {
-    set_gpio(hub_is_ready && power);
-    uart_setpower(hub_is_ready && power);
+    bool state = (hub_is_ready && power);
+    set_gpio(state);
+    uart_setpower(state);
+    lua_onpower(state);
 }
 
 /**

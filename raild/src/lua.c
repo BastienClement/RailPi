@@ -164,6 +164,16 @@ void lua_ondisconnect() {
 }
 
 /**
+ * Power On/Off event
+ * Fired when power state status is updated
+ */
+void lua_onpower(bool state) {
+    prepare_event("Power");
+    lua_pushboolean(L, state);
+    dispatch(1);
+}
+
+/**
  * Sensor changed event
  * Fired when any of the 24 sensors changes state
  */
@@ -460,4 +470,3 @@ luaL_Reg raild_api[] = {
 void lualib_register() {
     luaL_register(L, NULL, raild_api);
 }
-

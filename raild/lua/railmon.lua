@@ -43,6 +43,10 @@ On("Disconnect", function()
     emit("Disconnect")
 end)
 
+On("Power", function(state)
+    emit("Power", { state = state })
+end)
+
 On("SensorChange", function(i, s)
     emit("SensorChange", { id = i, state = s })
 end)

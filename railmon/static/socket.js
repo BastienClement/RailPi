@@ -48,6 +48,14 @@
                         $("#statusReady").removeClass("on").addClass("off");
                         break;
 
+                    case "Power":
+                        if(msg.state) {
+                            $("#statusPowered").removeClass("off").addClass("on");
+                        } else {
+                            $("#statusPowered").removeClass("on").addClass("off");
+                        }
+                        break;
+
                     case "Sync":
                         msg.switches.forEach(function(state, idx) {
                             updateSwitchState(idx + 1, state);
