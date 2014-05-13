@@ -91,6 +91,7 @@ void watch_sensors() {
 	uint8 sensors2 = ~P5;
 	uint8 sensors3 = ~P6;
 
+	SEND_DATA(SWITCHES, ~P2);
 	SEND_DATA(SENSORS_1, ~P4);
 	SEND_DATA(SENSORS_2, ~P5);
 	SEND_DATA(SENSORS_3, ~P6);
