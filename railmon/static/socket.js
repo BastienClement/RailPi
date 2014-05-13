@@ -12,6 +12,12 @@ ws.onmessage = function(m) {
                     switches[msg.id].state = msg.state;
                     drawMap();
                     break;
+
+                case "SwitchLock":
+                case "SwitchUnlock":
+                    switches[msg.id].locked = (msg.event == "SwitchLock");
+                    drawMap();
+                    break;
             }
             break;
     }

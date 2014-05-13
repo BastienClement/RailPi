@@ -2,8 +2,8 @@ var map = [
     {
         // Right
         t_switch: [175, 50],
-        flip: true, state: 0,
-        id: 2
+        flip: true, state: false,
+        id: 2, locked: false
     },
     {
         // Bottom right, outer
@@ -24,8 +24,8 @@ var map = [
     {
         // Middle right
         t_switch: [130, 95],
-        diagon: true, flip: true, state: 0,
-        id: 4
+        diagon: true, flip: true, state: false,
+        id: 4, locked: false
     },
     {
         // Middle
@@ -37,14 +37,14 @@ var map = [
     {
         // Middle left
         t_switch: [70, 95],
-        rotate: 3, state: 1,
-        id: 3
+        rotate: 3, state: false,
+        id: 3, locked: false
     },
     {
         // Bottom
         t_switch: [110, 115],
-        rotate: 3, state: 0,
-        id: 5
+        rotate: 3, state: false,
+        id: 5, locked: false
     },
     {
         // Left, outer
@@ -71,8 +71,8 @@ var map = [
     {
         // Top left
         t_switch: [60, 20],
-        rotate: 1, state: 0,
-        id: 1
+        rotate: 1, state: false,
+        id: 1, locked: false
     },
     {
         // Left, inner
@@ -109,7 +109,6 @@ var drawMap = (function() {
     var ctx = canvas.getContext("2d");
 
     ctx.translate(10, 10);
-    ctx.strokeStyle = "#FFF";
     ctx.lineWidth = 10;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -131,6 +130,8 @@ var drawMap = (function() {
             } else if(segment.t_switch) {
                 ctx.save();
 
+                var color = (segment.locked) ? "orange" : "#eee";
+
                 var sX = mapScale * (segment.flip ? -1 : 1);
                 var sY = mapScale;
 
@@ -139,21 +140,33 @@ var drawMap = (function() {
 
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                ctx.lineTo(segment.diagon ? 10*sX : 0, 10*sY);
-                ctx.strokeStyle = (segment.state ? "rgba(255,255,255,0.5)" : "#FFF");
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
                 ctx.lineTo(segment.diagon ? -10*sX : 0, -10*sY);
-                ctx.strokeStyle = "#eee"
+                ctx.strokeStyle = color
                 ctx.stroke();
 
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(10*sX, segment.diagon ? 0: 10*sY);
-                ctx.strokeStyle = (segment.state ? "#FFF" : "rgba(255,255,255,0.5)");
-                ctx.stroke();
+                function drawDefault() {
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(segment.diagon ? 10*sX : 0, 10*sY);
+                    ctx.strokeStyle = (segment.state ? "rgba(255,255,255,0.5)" : color);
+                    ctx.stroke();
+                }
+
+                function drawAlternate() {
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(10*sX, segment.diagon ? 0: 10*sY);
+                    ctx.strokeStyle = (segment.state ? color : "rgba(255,255,255,0.5)");
+                    ctx.stroke();
+                }
+
+                if(segment.state) {
+                    drawDefault();
+                    drawAlternate();
+                } else {
+                    drawAlternate();
+                    drawDefault();
+                }
 
                 ctx.lineWidth = 10;
                 ctx.restore();
