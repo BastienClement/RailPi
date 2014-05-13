@@ -1,3 +1,6 @@
+--
+-- Auto-managed switches
+--
 Switch = EventEmitter({
     handlers = {},
     objects = {}
@@ -159,7 +162,7 @@ function Switch:Create(sid, senA, senB, senC)
         handlers[sid] = nil
     end
 
-    -- Return the switch object
+    -- Return the new switch object
     self.objects[sid] = switch_obj
     return switch_obj
 end

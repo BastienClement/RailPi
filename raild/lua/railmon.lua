@@ -17,6 +17,7 @@ local function emit(event, obj)
     RailMon:Emit("JSON", JSON:Encode(obj))
 end
 
+-- Get full circuit state for RailMon
 function RailMon:Sync()
     local sw = {}
     for i = 1, 8 do sw[i] = GetSwitch(i) end

@@ -1,6 +1,11 @@
+--
+-- JSON utilities for RailMon web front-end
+--
 JSON = {}
 
 -- Null value
+-- Used as placeholder for nil in tables because Lua tables
+-- cannot hold a nil value
 JSON.null = {}
 
 -- Mark table as object
