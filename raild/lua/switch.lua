@@ -1,5 +1,6 @@
 Switch = EventEmitter({
-    handlers = {}
+    handlers = {},
+    objects = {}
 })
 
 -- Bind the event handler on first CreateSmartSwitch() call
@@ -14,6 +15,11 @@ do
             end
         end)
     end
+end
+
+-- Return the switch object for a given SwitchID
+function Switch:Get(sid)
+    return self.objects[sid]
 end
 
 -- Creates a new auto-managed switch object
@@ -155,5 +161,6 @@ function Switch:Create(sid, senA, senB, senC)
     end
 
     -- Return the switch object
+    self.objects[sid] = switch_obj
     return switch_obj
 end

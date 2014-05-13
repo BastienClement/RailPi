@@ -18,7 +18,7 @@ function socketConnect() {
         online = true;
         emitter.emit("event", { type: "online" });
 
-        socket.write("RailMon:Bind()\f");
+        socket.write("RailMon:Bind()\fRailMon:Sync()\f");
 
         sync = function() {
             socket.write("RailMon:Sync()\f");
@@ -111,7 +111,10 @@ wss.on("connection", function(ws) {
     };
 
     emitter.on("event", listener);
-    if(online) sync();
+    if(online) {
+        sync();
+        listener({ type: "online" });
+    }
 
     ws.on("close", function() {
         emitter.removeListener("event", listener);

@@ -24,9 +24,20 @@ function RailMon:Sync()
     local se = {}
     for i = 1, 24 do se[i] = GetSensor(i) end
 
+    local lo = {}
+    for i = 1, 8 do
+        local switch = Switch:Get(i)
+        if switch then
+            lo[i] = switch.locked
+        else
+            lo[i] = false
+        end
+    end
+
     emit("Sync", {
         switches = sw,
         sensors = se,
+        locks = lo,
         ready = IsHubReady(),
         power = IsPowered()
     })

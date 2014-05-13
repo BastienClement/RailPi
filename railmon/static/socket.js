@@ -1,4 +1,6 @@
-(function() {
+var sock_timeout;
+
+function connect() {
     var ws = new WebSocket("ws://rail-pi");
 
     function updateSwitchState(id, state) {
@@ -20,6 +22,14 @@
         var msg = JSON.parse(m.data);
 
         switch(msg.type) {
+            case "online":
+                $("#statusOnline").removeClass("off").addClass("on");
+                break;
+
+            case "offline":
+                $("#statusOnline").removeClass("on").addClass("off");
+                break;
+
             case "raild":
                 var msg = msg.payload;
                 console.log(msg);
@@ -61,11 +71,15 @@
                             updateSwitchState(idx + 1, state);
                         });
 
+                        msg.locks.forEach(function(state, idx) {
+                            updateSwitchLock(idx + 1, state);
+                        });
+
                         msg.sensors.forEach(function(state, idx) {
                             updateSensorActive(idx + 1, state);
                         });
 
-                        if(msg.powered) {
+                        if(msg.power) {
                             $("#statusPowered").removeClass("off").addClass("on");
                         } else {
                             $("#statusPowered").removeClass("on").addClass("off");
@@ -83,4 +97,17 @@
                 break;
         }
     };
-})();
+
+    function retry() {
+        $("#statusOnline").removeClass("on").addClass("off");
+        clearTimeout(sock_timeout);
+        sock_timeout = setTimeout(function() {
+            connect();
+        }, 2000);
+    }
+
+    ws.onerror = retry;
+    ws.onclose = retry;
+}
+
+connect();
