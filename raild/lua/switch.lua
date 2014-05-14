@@ -50,6 +50,7 @@ function Switch:Create(sid, senA, senB, senC)
     local switch_obj = EventEmitter({
         ["locked"] = false,
         ["exit_sensor"] = -1,
+        ["enter_sensor"] = -1,
         ["state"] = false
     })
 
@@ -60,16 +61,16 @@ function Switch:Create(sid, senA, senB, senC)
     end
 
     -- Lock this switch in a given position
-    function switch_obj:Lock(state, exit)
+    function switch_obj:Lock(state)
         self:Set(state)
         self.locked = true
-        self.exit_sensor = exit
-        emit("Lock", sid, state, exit)
+        emit("Lock", sid, state)
     end
 
     -- Free the previously set lock
     function switch_obj:Unlock()
         self.locked = false
+        self.enter_sensor = -1
         self.exit_sensor = -1
         emit("Unlock", sid)
     end
@@ -118,14 +119,8 @@ function Switch:Create(sid, senA, senB, senC)
                     end
                 else
                     if state then
-                        -- Rising edge on bad sensor
-                        local bad_sensor
-                        if switch_obj.exit_sensor == senC then
-                            bad_sensor = switch_obj.state and senA or senB
-                        else
-                            bad_sensor = switch_obj.exit_sensor == senB and senA or senB
-                        end
-                        if sen == bad_sensor then
+                        if sen ~= switch_obj.enter_sensor
+                        and sen ~= switch_obj.exit_sensor then
                             -- The current train has nothing to do with this
                             -- sensor, power-offing
                             SetPower(false)
@@ -138,18 +133,24 @@ function Switch:Create(sid, senA, senB, senC)
                 -- Rising edge on any sensor
                 if sen == senA then
                     -- (A) -> (C)
+                    switch_obj.enter_sensor = senA
+                    switch_obj.exit_sensor = senC
                     switch_obj:Lock(false, senC)
-                    emit("EnterA", sid)
+                    emit("EnterA", sid, switch_obj)
                 elseif sen == senB then
                     -- (B) -> (C)
+                    switch_obj.enter_sensor = senB
+                    switch_obj.exit_sensor = senC
                     switch_obj:Lock(true, senC)
-                    emit("EnterB", sid)
+                    emit("EnterB", sid, switch_obj)
                 else
                     -- (C) -> (A|B)
-                    emit("EnterC", sid)
+                    emit("EnterC", sid, switch_obj)
+                    switch_obj.enter_sensor = senC
+                    switch_obj.exit_sensor = switch_obj.state and senB or senA
 
                     -- Then lock it to the current state
-                    switch_obj:Lock(switch_obj.state, switch_obj.state and senB or senA)
+                    switch_obj:Lock(switch_obj.state)
                 end
             end
         end
