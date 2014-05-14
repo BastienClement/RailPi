@@ -23,9 +23,9 @@ On("Ready", function()
     SetPower(true)
 end)
 
-local interest = { [6] = true, [7] = true, [8] = true, [14] = true, [15] = true, [16] = true, [22] = true, [23] = true, [23] = true,  }
+local unconnected = { [8] = true, [16] = true, [24] = true, [13] = true, [23] = true }
 
 On("SensorChange", function(sen, state)
-    --if interest[sen] then return end
-    --print(sen, state)
+    --if unconnected[sen] then return end
+    print(sen, state)
 end)
