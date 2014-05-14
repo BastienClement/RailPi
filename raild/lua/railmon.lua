@@ -10,15 +10,27 @@ function RailMon:Bind()
     end)
 end
 
+-- Local :Sync() cache
+local sync_cache
+
 -- Emit event object with proper formatting
-local function emit(event, obj)
+local function emit(event, obj, keep_cache)
+    -- Obj is optional
     if not obj then obj = {} end
+
+    -- Delete cache if not told to keep it
+    if not keep_cache then sync_cache = nil end
+
+    -- Add event name and emit JSON
     obj.event = event
     RailMon:Emit("JSON", JSON:Encode(obj))
 end
 
 -- Get full circuit state for RailMon
 function RailMon:Sync()
+    -- Check if cache is available
+    if sync_cache then emit("Sync", sync_cache, true) end
+
     local sw = {}
     for i = 1, 8 do sw[i] = GetSwitch(i) end
 
@@ -35,13 +47,16 @@ function RailMon:Sync()
         end
     end
 
-    emit("Sync", {
+    -- Build cache
+    sync_cache = {
         switches = sw,
         sensors = se,
         locks = lo,
         ready = IsHubReady(),
         power = IsPowered()
-    })
+    }
+
+    emit("Sync", sync_cache, true)
 end
 
 -------------------------------------------------------------------------------
