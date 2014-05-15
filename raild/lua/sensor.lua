@@ -84,6 +84,7 @@ setmetatable(Sensor, {
         -- Disable this sensor
         function self.Disable()
             if enabled then enabled = false else return end
+            state = false
             handlers[id] = nil
             emit("Disable")
             return self
