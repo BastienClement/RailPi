@@ -17,14 +17,23 @@ On("SensorChange", function(id, state)
     end
 end)
 
--- Create one object for each sensor
-do
-    local function create_sensor(id)
+-- Create sensors lazily
+setmetatable(Sensor, {
+    __index = function(_, id)
+        if type(id) ~= "number"
+        or id < 1 or id > 24 then
+            error("invalid sensor id: " .. id)
+        end
+
         -- The sensor object
         local self = EventEmitter()
-
         local state = false
         local enabled = false
+
+        -- Accessors
+        function self.GetState() return state end
+        function self.GetId() return id end
+        function self.IsEnabled() return enabled end
 
         -- Emit events on both the sensor itself and the global Sensor object
         local function emit(event, ...)
@@ -70,11 +79,13 @@ do
             emit("Disable")
         end
 
+        -- Register and enable this sensor
+        Sensor[id] = self
+        self.Enable()
+
         return self
     end
-
-    for i = 1, 24 do Sensor[i] = create_sensor(i) end
-end
+})
 
 -- Enable multiple sensors at once
 function Sensor.Enable(...)
