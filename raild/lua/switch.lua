@@ -41,7 +41,8 @@ function Switch:Create(sid, senA, senB, senC)
     DoBind()
 
     -- Switch object
-    local switch_obj = EventEmitter({
+    local this = EventEmitter({
+        ["id"] = sid,
         ["locked"] = false,
         ["exit_sensor"] = -1,
         ["enter_sensor"] = -1,
@@ -50,19 +51,19 @@ function Switch:Create(sid, senA, senB, senC)
 
     -- Emit events on both the switch object and the global
     local function emit(event, ...)
-        switch_obj:Emit(event, ...)
-        Switch:Emit(event, sid, ...)
+        this:Emit(event, ...)
+        Switch:Emit(event, this, ...)
     end
 
     -- Lock this switch in a given position
-    function switch_obj:Lock(state)
+    function this:Lock(state)
         self:Set(state)
         self.locked = true
         emit("Lock", state)
     end
 
     -- Free the previously set lock
-    function switch_obj:Unlock()
+    function this:Unlock()
         self.locked = false
         self.enter_sensor = -1
         self.exit_sensor = -1
@@ -71,7 +72,7 @@ function Switch:Create(sid, senA, senB, senC)
 
     -- Set the switch in a given position
     -- If the switch is locked, does nothing
-    function switch_obj:Set(state, silent)
+    function this:Set(state, silent)
         -- Ignore call if switch is already is this position
         if self.state == state then return end
 
@@ -88,7 +89,7 @@ function Switch:Create(sid, senA, senB, senC)
     end
 
     -- Toggle switch state
-    function switch_obj:Toggle(silent)
+    function this:Toggle(silent)
         self:Set(not self.state, silent)
     end
 
@@ -99,13 +100,13 @@ function Switch:Create(sid, senA, senB, senC)
         if sen == senA
         or sen == senB
         or sen == senC then
-            if switch_obj.locked then
-                if sen == switch_obj.exit_sensor then
+            if this.locked then
+                if sen == this.exit_sensor then
                     -- Falling or rising edge on exit sensor
                     if not state then
                         -- Falling edge, delay unlock by 100ms
                         delayTimer = CreateTimer(100, 0, function()
-                            switch_obj:Unlock()
+                            this:Unlock()
                         end)
                     else
                         -- Rising edge, cancel the unlock delay
@@ -113,8 +114,8 @@ function Switch:Create(sid, senA, senB, senC)
                     end
                 else
                     if state then
-                        if sen ~= switch_obj.enter_sensor
-                        and sen ~= switch_obj.exit_sensor then
+                        if sen ~= this.enter_sensor
+                        and sen ~= this.exit_sensor then
                             -- The current train has nothing to do with this
                             -- sensor, power-offing
                             SetPower(false)
@@ -127,24 +128,24 @@ function Switch:Create(sid, senA, senB, senC)
                 -- Rising edge on any sensor
                 if sen == senA then
                     -- (A) -> (C)
-                    switch_obj.enter_sensor = senA
-                    switch_obj.exit_sensor = senC
-                    switch_obj:Lock(false, senC)
+                    this.enter_sensor = senA
+                    this.exit_sensor = senC
+                    this:Lock(false, senC)
                     emit("EnterA")
                 elseif sen == senB then
                     -- (B) -> (C)
-                    switch_obj.enter_sensor = senB
-                    switch_obj.exit_sensor = senC
-                    switch_obj:Lock(true, senC)
+                    this.enter_sensor = senB
+                    this.exit_sensor = senC
+                    this:Lock(true, senC)
                     emit("EnterB")
                 else
                     -- (C) -> (A|B)
                     emit("EnterC")
-                    switch_obj.enter_sensor = senC
-                    switch_obj.exit_sensor = switch_obj.state and senB or senA
+                    this.enter_sensor = senC
+                    this.exit_sensor = this.state and senB or senA
 
                     -- Lock it to the current state
-                    switch_obj:Lock(switch_obj.state)
+                    this:Lock(this.state)
                 end
             end
         end
@@ -152,12 +153,12 @@ function Switch:Create(sid, senA, senB, senC)
 
     -- Destroys a SmartSwitch
     -- The object should not be used afterward
-    function switch_obj:Disable()
+    function this:Disable()
         emit("Disable", sid, state, exit)
         handlers[sid] = nil
     end
 
     -- Return the new switch object
-    self[sid] = switch_obj
-    return switch_obj
+    self[sid] = this
+    return this
 end
