@@ -52,7 +52,13 @@ setmetatable(Sensor, {
         -- Debounce sensor state change
         local delay
         local function handler(new_state)
-            if delay then CancelTimer(delay) end
+            -- Cancel previous timer
+            if delay then
+                CancelTimer(delay)
+                delay = nil
+            end
+
+            -- Update state if needed
             if state ~= new_state then
                 local debounce = Sensor.debounce
                 if debounce > 0 then
@@ -72,6 +78,7 @@ setmetatable(Sensor, {
             state = GetSensor(id)
             handlers[id] = handler
             emit("Enable")
+            return self
         end
 
         -- Disable this sensor
@@ -79,6 +86,7 @@ setmetatable(Sensor, {
             if enabled then enabled = false else return end
             handlers[id] = nil
             emit("Disable")
+            return self
         end
 
         -- Register and enable this sensor
@@ -95,6 +103,7 @@ function Sensor.Enable(...)
     for i = 1, #sensors do
         Sensor[sensors[i]].Enable()
     end
+    return Sensor
 end
 
 -- Disable multiple sensors at once
@@ -103,6 +112,7 @@ function Sensor.Disable(...)
     for i = 1, #sensors do
         Sensor[sensors[i]].Disable()
     end
+    return Sensor
 end
 
 -- Check if an object is a sensor object
