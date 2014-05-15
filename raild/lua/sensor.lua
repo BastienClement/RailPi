@@ -6,6 +6,8 @@ Sensor = EventEmitter({
     debounce = 25
 })
 
+local sensor_mt = { __tostring = function() return "[object Sensor]" end }
+
 -- Handlers list
 -- Enabled sensor will list themselve here
 local handlers = {}
@@ -83,7 +85,7 @@ setmetatable(Sensor, {
         Sensor[id] = self
         self.Enable()
 
-        return self
+        return setmetatable(self, sensor_mt)
     end
 })
 
@@ -101,4 +103,9 @@ function Sensor.Disable(...)
     for i = 1, #sensors do
         Sensor[sensors[i]].Disable()
     end
+end
+
+-- Check if an object is a sensor object
+function Sensor.IsSensor(obj)
+    return getmetatable(obj) == sensor_mt
 end
