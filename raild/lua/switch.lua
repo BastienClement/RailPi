@@ -36,6 +36,12 @@ setmetatable(Switch, {
         local enter_sensor, exit_sensor
         local delay
 
+        -- Accessors
+        function self.GetId() return id end
+        function self.GetState() return state end
+        function self.IsEnabled() return enabled end
+        function self.IsLocked() return locked end
+
         -- Emit event on both the switch itself and the global Switch object
         local function emit(event, ...)
             self.Emit(event, ...)
@@ -149,7 +155,7 @@ setmetatable(Switch, {
         end
 
         -- Set the switch in a given position
-        function self.Set(new_state)
+        function self.SetState(new_state)
             if locked then
                 -- Store the state for later
                 pending_state = new_state
