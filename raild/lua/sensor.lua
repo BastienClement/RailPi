@@ -21,73 +21,73 @@ end)
 do
     local function create_sensor(id)
         -- The sensor object
-        local this = EventEmitter({
-            ["id"] = id,
-            ["state"] = false,
-            ["enabled"] = false
-        })
+        local self = EventEmitter()
+
+        local state = false
+        local enabled = false
 
         -- Emit events on both the sensor itself and the global Sensor object
         local function emit(event, ...)
-            this:Emit(event, ...)
-            Sensor:Emit(event, this, ...)
+            self.Emit(event, ...)
+            Sensor.Emit(event, self, ...)
         end
 
-        local function do_change(state)
-            this.state = state
-            emit("Change", state)
+        -- Change cached state and emit event
+        local function update(new_state)
+            state = new_state
+            emit("Change", new_state)
         end
 
         -- Debounce sensor state change
         local delay
-        local function handler(state)
+        local function handler(new_state)
             if delay then CancelTimer(delay) end
-            if this.state ~= state then
+            if state ~= new_state then
                 local debounce = Sensor.debounce
                 if debounce > 0 then
                     delay = CreateTimer(debounce, 0, function()
-                        do_change(state)
+                        update(new_state)
                         delay = nil
                     end)
                 else
-                    do_change(state)
+                    update(new_state)
                 end
             end
         end
 
         -- Enable this sensor
-        function this:Enable()
-            if self.enabled then return else self.enabled = true end
-            self.state = GetSensor(id)
+        function self.Enable()
+            if enabled then return else enabled = true end
+            state = GetSensor(id)
             handlers[id] = handler
             emit("Enable")
         end
 
         -- Disable this sensor
-        function this:Disable()
-            if self.enabled then self.enabled = false else return end
+        function self.Disable()
+            if enabled then enabled = false else return end
             handlers[id] = nil
             emit("Disable")
         end
 
-        return this
+        return self
     end
 
     for i = 1, 24 do Sensor[i] = create_sensor(i) end
 end
 
 -- Enable multiple sensors at once
-function Sensor:Enable(...)
+function Sensor.Enable(...)
     local sensors = {...}
     for i = 1, #sensors do
-        Sensor[sensors[i]]:Enable()
+        Sensor[sensors[i]].Enable()
     end
 end
 
 -- Disable multiple sensors at once
-function Sensor:Disable(...)
+function Sensor.Disable(...)
     local sensors = {...}
     for i = 1, #sensors do
-        Sensor[sensors[i]]:Disable()
+        Sensor[sensors[i]].Disable()
     end
 end
