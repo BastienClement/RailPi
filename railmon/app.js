@@ -18,10 +18,10 @@ function socketConnect() {
         online = true;
         emitter.emit("event", { type: "online" });
 
-        socket.write("RailMon:Bind()\fRailMon:Sync()\f");
+        socket.write("RailMon.Bind()\fRailMon.Sync()\f");
 
         sync = function() {
-            socket.write("RailMon:Sync()\f");
+            socket.write("RailMon.Sync()\f");
         };
 
         // Buffers list

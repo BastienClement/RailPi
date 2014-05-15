@@ -4,13 +4,13 @@
 RailMon = EventEmitter()
 
 -- Shortcut to reduce typing over telnet
-function RailMon:Bind()
-    RailMon:On("JSON", function(json)
+function RailMon.Bind()
+    RailMon.On("JSON", function(json)
         send(json, "\n")
     end)
 end
 
--- Local :Sync() cache
+-- Local Sync() cache
 local sync_cache
 
 -- Emit event object with proper formatting
@@ -23,35 +23,32 @@ local function emit(event, obj, keep_cache)
 
     -- Add event name and emit JSON
     obj.event = event
-    RailMon:Emit("JSON", JSON:Encode(obj))
+    RailMon.Emit("JSON", JSON.Encode(obj))
 end
 
 -- Get full circuit state for RailMon
-function RailMon:Sync()
+function RailMon.Sync()
     -- Check if cache is available
     if sync_cache then emit("Sync", sync_cache, true) end
 
-    local sw = {}
-    for i = 1, 8 do sw[i] = GetSwitch(i) end
+    local sensors = {}
+    for i = 1, 24 do
+        sensors[i] = Sensor[i].GetState()
+    end
 
-    local se = {}
-    for i = 1, 24 do se[i] = GetSensor(i) end
-
-    local lo = {}
+    local switches = {}
+    local locks = {}
     for i = 1, 8 do
-        local switch = Switch:Get(i)
-        if switch then
-            lo[i] = switch.locked
-        else
-            lo[i] = false
-        end
+        local switch = Switch[i]
+        switches[i] = switch:GetState()
+        locks[i] = switch:IsLocked()
     end
 
     -- Build cache
     sync_cache = {
-        switches = sw,
-        sensors = se,
-        locks = lo,
+        switches = switches,
+        sensors = sensors,
+        locks = locks,
         ready = IsHubReady(),
         power = IsPowered()
     }
@@ -85,10 +82,10 @@ end)
 -------------------------------------------------------------------------------
 -- Bindings to Switches
 -------------------------------------------------------------------------------
-Switch:On("Lock", function(i)
-    emit("SwitchLock", { id = i })
+Switch:On("Lock", function(switch)
+    emit("SwitchLock", { id = switch.GetId() })
 end)
 
-Switch:On("Unlock", function(i)
-    emit("SwitchUnlock", { id = i })
+Switch:On("Unlock", function(switch)
+    emit("SwitchUnlock", { id = switch.GetId() })
 end)
