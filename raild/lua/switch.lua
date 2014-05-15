@@ -48,6 +48,15 @@ setmetatable(Switch, {
             Sensor.Emit(event, self, ...)
         end
 
+        -- Unlock this switch
+        local function unlock()
+            locked = false
+            enter_sensor = nil
+            exit_sensor = nil
+            emit("Unlock")
+            self.Set(pending_state)
+        end
+
         -- Handle sensor events
         local function handler(sen, rising)
             -- Only react to related sensors
@@ -65,13 +74,7 @@ setmetatable(Switch, {
                             end
                         else
                             -- Falling edge, delay unlock
-                            delay = CreateTimer(Switch.debounce, 0, function()
-                                locked = false
-                                enter_sensor = nil
-                                exit_sensor = nil
-                                emit("Unlock")
-                                self.Set(pending_state)
-                            end)
+                            delay = CreateTimer(Switch.debounce, 0, unlock)
                         end
                     else
                         -- Activity on another sensor
@@ -148,7 +151,18 @@ setmetatable(Switch, {
 
         -- Disable this switch
         function self.Disable()
+            -- Remove binding to sensors
             Sensor:Off("Change", handler)
+
+            -- Cleanup potential timer
+            if delay then
+                CancelTimer(delay)
+                delay = nil
+            end
+
+            -- Unlock this switch
+            unlock()
+
             enabled = false
             emit("Disable")
             return self
@@ -169,7 +183,7 @@ setmetatable(Switch, {
             return self
         end
 
-        -- Register and this switch
+        -- Register and return this switch
         Switch[id] = self
         return setmetatable(self, switch_mt)
     end
