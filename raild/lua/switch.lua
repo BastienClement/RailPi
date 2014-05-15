@@ -49,16 +49,16 @@ function Switch:Create(sid, senA, senB, senC)
     })
 
     -- Emit events on both the switch object and the global
-    local function emit(...)
-        switch_obj:Emit(...)
-        Switch:Emit(...)
+    local function emit(event, ...)
+        switch_obj:Emit(event, ...)
+        Switch:Emit(event, sid, ...)
     end
 
     -- Lock this switch in a given position
     function switch_obj:Lock(state)
         self:Set(state)
         self.locked = true
-        emit("Lock", sid, state)
+        emit("Lock", state)
     end
 
     -- Free the previously set lock
@@ -66,7 +66,7 @@ function Switch:Create(sid, senA, senB, senC)
         self.locked = false
         self.enter_sensor = -1
         self.exit_sensor = -1
-        emit("Unlock", sid)
+        emit("Unlock")
     end
 
     -- Set the switch in a given position
@@ -81,9 +81,9 @@ function Switch:Create(sid, senA, senB, senC)
         -- If not locked, then send to RailHub
         if not self.locked then
             SetSwitch(sid, self.state)
-            emit("Set", sid, state)
+            emit("Set", state)
         elseif not silent then
-            error("attempted to set a locked switch")
+            error("attempt to set or lock an already locked switch")
         end
     end
 
@@ -119,7 +119,7 @@ function Switch:Create(sid, senA, senB, senC)
                             -- sensor, power-offing
                             SetPower(false)
                             print("detected activity on bad sensorID, power-offing")
-                            emit("BadSensor", sid, sen)
+                            emit("BadSensor", sen)
                         end
                     end
                 end
@@ -130,20 +130,20 @@ function Switch:Create(sid, senA, senB, senC)
                     switch_obj.enter_sensor = senA
                     switch_obj.exit_sensor = senC
                     switch_obj:Lock(false, senC)
-                    emit("EnterA", sid, switch_obj)
+                    emit("EnterA")
                 elseif sen == senB then
                     -- (B) -> (C)
                     switch_obj.enter_sensor = senB
                     switch_obj.exit_sensor = senC
                     switch_obj:Lock(true, senC)
-                    emit("EnterB", sid, switch_obj)
+                    emit("EnterB")
                 else
                     -- (C) -> (A|B)
-                    emit("EnterC", sid, switch_obj)
+                    emit("EnterC")
                     switch_obj.enter_sensor = senC
                     switch_obj.exit_sensor = switch_obj.state and senB or senA
 
-                    -- Then lock it to the current state
+                    -- Lock it to the current state
                     switch_obj:Lock(switch_obj.state)
                 end
             end
