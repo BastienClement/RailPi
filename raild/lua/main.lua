@@ -4,11 +4,11 @@ local s3 = Switch:Create(3, 3, 11, 19)
 local s4 = Switch:Create(4, 4, 12, 20)
 local s5 = Switch:Create(5, 5,  4, 21)
 
-Switch:On("EnterC", function(sid)
-    if sid == 3 then
-        Switch[3]:Set(false)
+Switch:On("EnterC", function(switch)
+    if switch.id == 3 then
+        switch:Set(false)
     else
-        Switch[sid]:Toggle()
+        switch:Toggle()
     end
 end)
 
