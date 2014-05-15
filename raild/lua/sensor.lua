@@ -7,6 +7,7 @@ Sensor = EventEmitter({
 })
 
 -- Handlers list
+-- Enabled sensor will list themselve here
 local handlers = {}
 
 -- Bind the event handler
@@ -32,21 +33,32 @@ do
             Sensor:Emit(event, this, ...)
         end
 
+        local function do_change(state)
+            this.state = state
+            emit("Change", state)
+        end
+
         -- Debounce sensor state change
         local delay
         local function handler(state)
-            CancelTimer(delay)
+            if delay then CancelTimer(delay) end
             if this.state ~= state then
-                delay = CreateTimer(Sensor.debounce, 0, function()
-                    this.state = state
-                    emit("Change", state)
-                end)
+                local debounce = Sensor.debounce
+                if debounce > 0 then
+                    delay = CreateTimer(debounce, 0, function()
+                        do_change(state)
+                        delay = nil
+                    end)
+                else
+                    do_change(state)
+                end
             end
         end
 
         -- Enable this sensor
         function this:Enable()
             if self.enabled then return else self.enabled = true end
+            self.state = GetSensor(id)
             handlers[id] = handler
             emit("Enable")
         end
@@ -61,9 +73,7 @@ do
         return this
     end
 
-    for i = 1, 24 do
-        Sensor[i] = create_sensor(i)
-    end
+    for i = 1, 24 do Sensor[i] = create_sensor(i) end
 end
 
 -- Enable multiple sensors at once
