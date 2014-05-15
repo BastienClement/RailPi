@@ -9,19 +9,19 @@ JSON = {}
 JSON.null = {}
 
 -- Mark table as object
-local object_mt = { __tostring = function() return "JSON Object" end }
-function JSON:Object(table)
+local object_mt = { __tostring = function() return "[object JSONObject]" end }
+function JSON.Object(table)
     return setmetatable(table, object_mt)
 end
 
 -- Mark table as array
-local array_mt = { __tostring = function() return "JSON Array" end }
-function JSON:Array(table)
+local array_mt = { __tostring = function() return "[object JSONArray]" end }
+function JSON.Array(table)
     return setmetatable(table, array_mt)
 end
 
 --
--- JSON:Encode
+-- JSON.Encode
 --
 do
     local function encodeNumber(n)
@@ -36,19 +36,19 @@ do
 
     local function encodeObject(b, o)
         for key, value in pairs(o) do
-            b[#b+1] = encodeString(key) .. ":" .. JSON:Encode(value)
+            b[#b+1] = encodeString(key) .. ":" .. JSON.Encode(value)
         end
         return "{", "}"
     end
 
     local function encodeArray(b, a)
         for index, value in ipairs(a) do
-            b[#b+1] = JSON:Encode(value)
+            b[#b+1] = JSON.Encode(value)
         end
         return "[", "]"
     end
 
-    function JSON:Encode(obj)
+    function JSON.Encode(obj)
         local t = type(obj)
         if t == "nil" then
             return "null"
@@ -65,16 +65,16 @@ do
             end
 
             local b = {}  -- Entries buffer
-            local dl, dr  -- Left/right delimiters
+            local ld, rd  -- Left/right delimiters
 
             -- Guess if this table is an object or an array
-            if tostring(obj) == "JSON Object" or #obj == 0 then
-                dl, dr = encodeObject(b, obj)
+            if tostring(obj) == "[object JSONObject]" or #obj == 0 then
+                ld, rd = encodeObject(b, obj)
             else
-                dl, dr = encodeArray(b, obj)
+                ld, rd = encodeArray(b, obj)
             end
 
-            return dl .. table.concat(b, ",") .. dr
+            return ld .. table.concat(b, ",") .. rd
         else
             -- Unknown type (function / userdata / thread)
             error("cannot JSON-encode value from type: " .. obj)
