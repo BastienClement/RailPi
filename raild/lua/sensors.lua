@@ -1,7 +1,7 @@
 --
 -- High-level sensors with built-in debounce
 --
-Sensor = EventEmitter({
+Sensors = EventEmitter({
     -- Debounce delay (ms)
     debounce = 25
 })
@@ -20,7 +20,7 @@ On("SensorChange", function(id, state)
 end)
 
 -- Create sensors lazily
-setmetatable(Sensor, {
+setmetatable(Sensors, {
     __index = function(_, id)
         if type(id) ~= "number"
         or id < 1 or id > 24 then
@@ -37,10 +37,10 @@ setmetatable(Sensor, {
         function self.GetId() return id end
         function self.IsEnabled() return enabled end
 
-        -- Emit events on both the sensor itself and the global Sensor object
+        -- Emit events on both the sensor itself and the global Sensors object
         local function emit(event, ...)
             self.Emit(event, ...)
-            Sensor.Emit(event, self, ...)
+            Sensors.Emit(event, self, ...)
         end
 
         -- Change cached state and emit event
@@ -60,7 +60,7 @@ setmetatable(Sensor, {
 
             -- Update state if needed
             if state ~= new_state then
-                local debounce = Sensor.debounce
+                local debounce = Sensors.debounce
                 if debounce > 0 then
                     delay = CreateTimer(debounce, 0, function()
                         update(new_state)
@@ -91,7 +91,7 @@ setmetatable(Sensor, {
         end
 
         -- Register and enable this sensor
-        Sensor[id] = self
+        Sensors[id] = self
         self.Enable()
 
         return setmetatable(self, sensor_mt)
@@ -99,24 +99,24 @@ setmetatable(Sensor, {
 })
 
 -- Enable multiple sensors at once
-function Sensor.Enable(...)
+function Sensors.Enable(...)
     local sensors = {...}
     for i = 1, #sensors do
-        Sensor[sensors[i]].Enable()
+        Sensors[sensors[i]].Enable()
     end
-    return Sensor
+    return Sensors
 end
 
 -- Disable multiple sensors at once
-function Sensor.Disable(...)
+function Sensors.Disable(...)
     local sensors = {...}
     for i = 1, #sensors do
-        Sensor[sensors[i]].Disable()
+        Sensors[sensors[i]].Disable()
     end
-    return Sensor
+    return Sensors
 end
 
 -- Check if an object is a sensor object
-function Sensor.IsSensor(obj)
+function Sensors.IsSensor(obj)
     return getmetatable(obj) == sensor_mt
 end

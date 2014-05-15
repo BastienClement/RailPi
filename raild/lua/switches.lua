@@ -1,7 +1,7 @@
 --
 -- Auto-managed switches
 --
-Switch = EventEmitter({
+Switches = EventEmitter({
     -- Delay before unlocking the switch (ms)
     debounce = 100
 })
@@ -18,7 +18,7 @@ local switch_mt = { __tostring = function() return "[object Switch]" end }
 --      | |
 --      (C)
 --
-setmetatable(Switch, {
+setmetatable(Switches, {
     __index = function(_, id)
         if type(id) ~= "number"
         or id < 1 or id > 8 then
@@ -42,10 +42,10 @@ setmetatable(Switch, {
         function self.IsEnabled() return enabled end
         function self.IsLocked() return locked end
 
-        -- Emit event on both the switch itself and the global Switch object
+        -- Emit event on both the switch itself and the global Switches object
         local function emit(event, ...)
             self.Emit(event, ...)
-            Sensor.Emit(event, self, ...)
+            Switches.Emit(event, self, ...)
         end
 
         -- Unlock this switch
@@ -74,7 +74,7 @@ setmetatable(Switch, {
                             end
                         else
                             -- Falling edge, delay unlock
-                            delay = CreateTimer(Switch.debounce, 0, unlock)
+                            delay = CreateTimer(Switches.debounce, 0, unlock)
                         end
                     else
                         -- Activity on another sensor
@@ -127,9 +127,9 @@ setmetatable(Switch, {
             if type(c) == "number" then b = Sensor[b] end
 
             -- Check if arguments are valid sensor objects
-            if not Sensor.IsSensor(a)
-            or not Sensor.IsSensor(b)
-            or not Sensor.IsSensor(c) then
+            if not Sensors.IsSensor(a)
+            or not Sensors.IsSensor(b)
+            or not Sensors.IsSensor(c) then
                 error("invalid arguments given to switch.Enable()")
             end
 
@@ -178,13 +178,13 @@ setmetatable(Switch, {
                 state = new_state
                 pending_state = new_state
                 SetSwitch(id, new_state)
-                emit("Set", new_state)
+                emit("Change", new_state)
             end
             return self
         end
 
         -- Register and return this switch
-        Switch[id] = self
+        Switches[id] = self
         return setmetatable(self, switch_mt)
     end
 })

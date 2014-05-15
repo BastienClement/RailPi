@@ -1,6 +1,6 @@
 -- Model utilities
-load "lua/sensor.lua"
-load "lua/switch.lua"
+load "lua/sensors.lua"
+load "lua/switches.lua"
 
 -- RailMon bindings
 load "lua/json.lua"

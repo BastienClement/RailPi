@@ -31,24 +31,24 @@ function RailMon.Sync()
     -- Check if cache is available
     if sync_cache then emit("Sync", sync_cache, true) end
 
-    local sensors = {}
+    local _sensors = {}
     for i = 1, 24 do
-        sensors[i] = Sensor[i].GetState()
+        _sensors[i] = Sensors[i].GetState()
     end
 
-    local switches = {}
-    local locks = {}
+    local _switches = {}
+    local _locks = {}
     for i = 1, 8 do
-        local switch = Switch[i]
-        switches[i] = switch:GetState()
-        locks[i] = switch:IsLocked()
+        local switch = Switches[i]
+        _switches[i] = switch:GetState()
+        _locks[i] = switch:IsLocked()
     end
 
     -- Build cache
     sync_cache = {
-        switches = switches,
-        sensors = sensors,
-        locks = locks,
+        switches = _switches,
+        sensors = _sensors,
+        locks = _locks,
         ready = IsHubReady(),
         power = IsPowered()
     }
@@ -82,10 +82,10 @@ end)
 -------------------------------------------------------------------------------
 -- Bindings to Switches
 -------------------------------------------------------------------------------
-Switch:On("Lock", function(switch)
+Switches:On("Lock", function(switch)
     emit("SwitchLock", { id = switch.GetId() })
 end)
 
-Switch:On("Unlock", function(switch)
+Switches:On("Unlock", function(switch)
     emit("SwitchUnlock", { id = switch.GetId() })
 end)
