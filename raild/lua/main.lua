@@ -4,19 +4,12 @@ local s3 = Switch:Create(3, 3, 11, 19)
 local s4 = Switch:Create(4, 4, 12, 20)
 local s5 = Switch:Create(5, 5,  4, 21)
 
-function toggleHandler(switch)
-    return function()
-        switch:Toggle()
+Switch:On("EnterC", function(sid)
+    if sid == 3 then
+        Switch[3]:Set(false)
+    else
+        Switch[sid]:Toggle()
     end
-end
-
-s1:On("EnterC", toggleHandler(s1))
-s2:On("EnterC", toggleHandler(s2))
-s4:On("EnterC", toggleHandler(s4))
-s5:On("EnterC", toggleHandler(s5))
-
-s3:On("EnterC", function()
-    s3:Set(false)
 end)
 
 On("Ready", function()
