@@ -159,9 +159,9 @@ do
     -- Set emitters as weak values
     setmetatable(emitters, { ["__mode"] = "k"})
 
-    function EventEmitter(obj)
+    function EventEmitter(self)
         -- Optional parameter
-        obj = obj or {}
+        self = self or {}
 
         -- List of registered event handlers
         local events = {}
@@ -169,7 +169,7 @@ do
         --
         -- Emits an event
         --
-        function obj:Emit(event, ...)
+        function self.Emit(event, ...)
             -- This event has nothing registered to it
             if not events[event] then return end
 
@@ -189,7 +189,7 @@ do
         --
         -- Attaches a new handler to an event
         --
-        function obj:On(event, fn, persistent)
+        function self.On(event, fn, persistent)
             -- First time an event is registered
             if not events[event] then
                 events[event] = {}
@@ -210,7 +210,7 @@ do
         -- If the fn argument is nil, disables every handlers
         -- registered from the current context on this event
         --
-        function obj:Off(event, fn)
+        function self.Off(event, fn)
             -- Nothing registered to this event, so obviously
             -- nothing to remove...
             if not events[event] then return end
@@ -236,7 +236,7 @@ do
         -- This functions checks every handlers and removes those
         -- registered from that context
         --
-        emitters[obj] = function(ctx)
+        emitters[self] = function(ctx)
             for _, handlers in pairs(events) do
                 for idx, handler in ipairs(handlers) do
                     if handler.ctx == ctx then
@@ -251,7 +251,7 @@ do
             end
         end
 
-        return obj
+        return self
     end
 
     --
