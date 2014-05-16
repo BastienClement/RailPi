@@ -3,7 +3,7 @@
 --
 Switches = EventEmitter({
     -- Delay before unlocking the switch (ms)
-    debounce = 50
+    debounce = 200
 })
 
 local switch_mt = { __tostring = function() return "[object Switch]" end }
