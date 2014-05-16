@@ -3,7 +3,7 @@
 --
 Sensors = EventEmitter({
     -- Debounce delay (ms)
-    debounce = 25
+    debounce = 10
 })
 
 local sensor_mt = { __tostring = function() return "[object Sensor]" end }

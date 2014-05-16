@@ -1,5 +1,3 @@
-Sensors.debounce = 5
-
 Sensors.Enable(6, 7, 14, 15, 22)
 Sensors.Disable(8, 16, 24, 13, 23)
 
