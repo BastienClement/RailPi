@@ -82,10 +82,10 @@ end)
 -------------------------------------------------------------------------------
 -- Bindings to Switches
 -------------------------------------------------------------------------------
-Switches:On("Lock", function(switch)
+Switches.On("Lock", function(switch)
     emit("SwitchLock", { id = switch.GetId() })
 end)
 
-Switches:On("Unlock", function(switch)
+Switches.On("Unlock", function(switch)
     emit("SwitchUnlock", { id = switch.GetId() })
 end)

@@ -26,7 +26,7 @@ setmetatable(Switches, {
         end
 
         -- The switch object
-        local self = EventEmitter()
+        local self = setmetatable(EventEmitter(), switch_mt)
         local enabled = false
         local state = false
         local pending_state = false
@@ -54,7 +54,7 @@ setmetatable(Switches, {
             enter_sensor = nil
             exit_sensor = nil
             emit("Unlock")
-            self.Set(pending_state)
+            self.SetState(pending_state)
         end
 
         -- Handle sensor events
@@ -95,13 +95,13 @@ setmetatable(Switches, {
                         emit("EnterA")
                         enter_sensor = senA
                         exit_sensor = senC
-                        self.Set(false)
+                        self.SetState(false)
                     elseif sen == senB then
                         -- (B) -> (C)
                         emit("EnterB")
                         enter_sensor = senB
                         exit_sensor = senC
-                        self.Set(true)
+                        self.SetState(true)
                     else
                         -- (C) -> (A|B)
                         emit("EnterC")
@@ -122,9 +122,9 @@ setmetatable(Switches, {
             end
 
             -- Cast sensor IDs to sensor objects
-            if type(a) == "number" then a = Sensor[a] end
-            if type(b) == "number" then b = Sensor[b] end
-            if type(c) == "number" then b = Sensor[b] end
+            if type(a) == "number" then a = Sensors[a] end
+            if type(b) == "number" then b = Sensors[b] end
+            if type(c) == "number" then c = Sensors[c] end
 
             -- Check if arguments are valid sensor objects
             if not Sensors.IsSensor(a)
@@ -143,7 +143,7 @@ setmetatable(Switches, {
             locked = false
 
             -- Register handler
-            Sensor:On("Change", handler)
+            Sensors.On("Change", handler)
 
             emit("Enable")
             return self
@@ -152,7 +152,7 @@ setmetatable(Switches, {
         -- Disable this switch
         function self.Disable()
             -- Remove binding to sensors
-            Sensor:Off("Change", handler)
+            Sensors.Off("Change", handler)
 
             -- Cleanup potential timer
             if delay then
@@ -185,6 +185,6 @@ setmetatable(Switches, {
 
         -- Register and return this switch
         Switches[id] = self
-        return setmetatable(self, switch_mt)
+        return self
     end
 })
