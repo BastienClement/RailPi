@@ -1,3 +1,6 @@
+-- Utilities
+load "lua/time.lua"
+
 -- Model utilities
 load "lua/sensors.lua"
 load "lua/switches.lua"
