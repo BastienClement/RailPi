@@ -19,7 +19,7 @@ do
     bind("AllocContext", function(ctx, class)
         -- Check if context is not already allocated
         if ctxs[ctx] then
-            error("attempted to alloc an already allocated context: " .. ctx .. " " .. class)
+            error("attempt to alloc an already allocated context: " .. ctx .. " " .. class)
         end
 
         -- Allocate
@@ -30,7 +30,7 @@ do
     bind("DeallocContext", function(ctx)
         -- Check if context is allocated
         if not ctxs[ctx] then
-            error("attempted to dealloc a not allocated context: " .. ctx)
+            error("attempt to dealloc a not allocated context: " .. ctx)
         end
 
         -- Run cleaners
@@ -81,7 +81,7 @@ do
             ctxStack[#ctxStack + 1] = GetCtx()
             ctx = new_ctx
         else
-            error("attempted to switch to a forbidden context type")
+            error("attempt to switch to a forbidden context type")
         end
     end
 
@@ -94,7 +94,7 @@ do
             ctx = ctxStack[top]
             table.remove(ctxStack, top)
         else
-            error("attempted to restore the previous context despite an empty context stack")
+            error("attempt to restore the previous context despite an empty context stack")
         end
     end
 
