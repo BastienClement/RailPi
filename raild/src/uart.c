@@ -7,7 +7,10 @@
  * Handle UART communication between Raild and RailHub
  */
 
+#ifndef UART_DEBUG
 #define UART_DEBUG  0
+#endif
+
 #if UART_DEBUG
 #define TRACE(msg) logger("UART", "trace: " msg);
 #else
