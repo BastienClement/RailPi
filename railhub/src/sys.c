@@ -29,11 +29,11 @@ void SYSCLK_Init(void) {
 //
 void PORT_Init(void) {
 	XBR0 |= 0x04;    // Enable UART0
-	XBR2 |= 0x40;    // Enable crossbar and weak pull-ups
-	P0MDOUT |= 0x01; // enable TX0 as a push-pull output
-	P1MDOUT |= 0xFF;
-	P2MDOUT |= 0xFF;
-	P3MDOUT |= 0xFF;
+	XBR2 |= 0xC0;    // Enable crossbar and disable weak pull-ups
+	P0MDOUT = 0x01;  // enable TX0 as a push-pull output
+	P1MDOUT = 0xFF;
+	P2MDOUT = 0xFF;
+	P74OUT  = 0x00;
 }
 
 //-----------------------------------------------------------------------------
