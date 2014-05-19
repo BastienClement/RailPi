@@ -3,7 +3,7 @@
 --
 Sensors = EventEmitter({
     -- Debounce delay (ms)
-    debounce = 25
+    debounce = 20
 })
 
 local sensor_mt = { __tostring = function() return "[object Sensor]" end }
@@ -24,11 +24,11 @@ setmetatable(Sensors, {
     __index = function(_, id)
         if type(id) ~= "number"
         or id < 1 or id > 24 then
-            error("invalid sensor id: " .. id)
+            error("invalid sensor id: " .. tostring(id))
         end
 
         -- The sensor object
-        local self = EventEmitter()
+        local self = setmetatable(EventEmitter(), sensor_mt)
         local state = false
         local enabled = false
 
@@ -94,7 +94,7 @@ setmetatable(Sensors, {
         Sensors[id] = self
         self.Enable()
 
-        return setmetatable(self, sensor_mt)
+        return self
     end
 })
 
