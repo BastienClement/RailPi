@@ -1,6 +1,3 @@
-#define OFF             0x00
-#define ON              0x01
-
 #define KEEP_ALIVE      0x2E
 
 #define POWER_ON        0x31
