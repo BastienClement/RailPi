@@ -299,6 +299,7 @@ do
 
     -- List of all defined timers
     local timers = {}
+    local soft_tid = 0
 
     -- Create a new timer that will fire for the first time after `initial`
     -- milliseconds and then every `interval` milliseconds, calling the
@@ -328,14 +329,20 @@ do
         end)
 
         -- Save the context of this timer
-        timers[tid] = ctx
+        soft_tid = soft_tid + 1
+        timers[tid] = soft_tid
 
-        return tid
+        return { tid = tid, soft = soft_tid }
     end
 
     -- Cancel a not-yet-fired timer
-    function CancelTimer(tid)
-        if not timers[tid] then return end
+    function CancelTimer(timer)
+        if not timer then return end
+        local tid = timer.tid
+        if not timers[tid]
+        or timers[tid] ~= timer.soft then
+            return
+        end
         timers[tid] = nil     -- deletes the Lua reference
         cancel_timer(tid)     -- cancels the timer
         unregister_timer(tid) -- unregisters the callback

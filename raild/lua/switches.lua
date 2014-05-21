@@ -3,7 +3,7 @@
 --
 Switches = EventEmitter({
     -- Delay before unlocking the switch (ms)
-    debounce = 200
+    debounce = 100
 })
 
 local switch_mt = { __tostring = function() return "[object Switch]" end }
@@ -68,10 +68,7 @@ setmetatable(Switches, {
                         -- Falling or rising edge on exit sensor
                         if rising then
                             -- Rising edge, cancel the unlock delay
-                            if delay then
-                                CancelTimer(delay)
-                                delay = nil
-                            end
+                            CancelTimer(delay)
                         else
                             -- Falling edge, delay unlock
                             delay = CreateTimer(Switches.debounce, 0, unlock)
@@ -155,10 +152,7 @@ setmetatable(Switches, {
             Sensors.Off("Change", handler)
 
             -- Cleanup potential timer
-            if delay then
-                CancelTimer(delay)
-                delay = nil
-            end
+            CancelTimer(delay)
 
             -- Unlock this switch
             unlock()

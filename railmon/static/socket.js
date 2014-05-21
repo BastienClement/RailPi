@@ -34,6 +34,10 @@ function connect() {
                 var msg = msg.payload;
                 console.log(msg);
                 switch(msg.event) {
+                    case "Round":
+                        $("#round").text(msg.count);
+                        break;
+
                     case "SwitchChange":
                         updateSwitchState(msg.id, msg.state);
                         drawMap();

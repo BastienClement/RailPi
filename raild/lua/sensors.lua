@@ -3,7 +3,7 @@
 --
 Sensors = EventEmitter({
     -- Debounce delay (ms)
-    debounce = 20
+    debounce = 50
 })
 
 local sensor_mt = { __tostring = function() return "[object Sensor]" end }
@@ -53,10 +53,7 @@ setmetatable(Sensors, {
         local delay
         local function handler(new_state)
             -- Cancel previous timer
-            if delay then
-                CancelTimer(delay)
-                delay = nil
-            end
+            CancelTimer(delay)
 
             -- Update state if needed
             if state ~= new_state then
@@ -64,7 +61,6 @@ setmetatable(Sensors, {
                 if debounce > 0 then
                     delay = CreateTimer(debounce, 0, function()
                         update(new_state)
-                        delay = nil
                     end)
                 else
                     update(new_state)

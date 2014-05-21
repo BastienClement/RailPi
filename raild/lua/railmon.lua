@@ -26,6 +26,11 @@ local function emit(event, obj, keep_cache)
     RailMon.Emit("JSON", JSON.Encode(obj))
 end
 
+-- Emit from anywhere
+function RailMon.Send(event, obj)
+    emit(event, obj, true)
+end
+
 -- Get full circuit state for RailMon
 function RailMon.Sync()
     -- Check if cache is available
@@ -71,12 +76,15 @@ On("Power", function(state)
     emit("Power", { state = state })
 end)
 
-On("SensorChange", function(i, s)
-    emit("SensorChange", { id = i, state = s })
-end)
-
 On("SwitchChange", function(i, s)
     emit("SwitchChange", { id = i, state = s })
+end)
+
+-------------------------------------------------------------------------------
+-- Bindings to Sensors
+-------------------------------------------------------------------------------
+Sensors.On("Change", function(sen, s)
+    emit("SensorChange", { id = sen.GetId(), state = s })
 end)
 
 -------------------------------------------------------------------------------

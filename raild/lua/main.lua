@@ -7,44 +7,62 @@ Switches[3].Enable(3, 11, 19)
 Switches[4].Enable(4, 12, 20)
 Switches[5].Enable(5,  4, 21)
 
-Switches.On("EnterC", function(switch)
-    if switch.GetId() == 3 then
-        switch.SetState(false)
-    else
-        --switch.SetState(not switch.GetState())
-    end
-end)
+local segment = Chrono()
+local diff = Chrono()
+local ok = true
+local slow_loco = false
+local round = 0
+local counter = false
 
-local loop = { 15, 7, 1, 17, 22, 18, 2, 5, 21 }
-local i = 1
-local ready = false
-local counter = 0
-
-Sensors.On("Change", function(sensor, state)
-    local id = sensor.GetId()
+Sensors[22].On("Change", function(state)
     if state then
-        if not ready then
-            if id == loop[1] then
-                i = 2
-                ready = true
-                print("start")
-            end
+        if counter then
+            round = round + 1
+            counter = false
+            print("Tour:", round)
+            RailMon.Send("Round", { count = round })
         else
-            if loop[i] ~= id then
-                print("got:", id, "expected", loop[i])
-                SetPower(false)
-            else
-                i = i + 1
-                if i > #loop then
-                    i = 1
-                    counter = counter + 1
-                    print("loop:", counter)
-                end
-            end
+            counter = true
         end
     end
 end)
 
+Sensors[17].On("Change", function(state)
+    if state then
+        segment.Push()
+    end
+end)
+
+Switches[2].On("EnterC", function()
+    local fast
+    if segment.Shift() < segment.Mean() then
+        print("Fast")
+        if diff.Time() < (segment.Mean() * 1.5) then
+            print("Too close")
+            ok = false
+        else
+            print("It's okay!")
+            ok = true
+        end
+        Switches[2].SetState(ok)
+    else
+        print("Slow")
+        diff.Reset()
+        slow_loco = true
+        Switches[2].SetState(true)
+    end
+end)
+
+Switches[4].On("EnterC", function()
+    if slow_loco then
+        Switches[4].SetState(not ok)
+        slow_loco = false
+    else
+        Switches[4].SetState(false)
+    end
+end)
+
 On("Ready", function()
+    Switches[3].SetState(false)
     SetPower(true)
 end)
