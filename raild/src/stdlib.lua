@@ -174,7 +174,7 @@ do
             if not events[event] then return end
 
             -- Loops over every handlers
-            for _, handler in ipairs(events[event]) do
+            for idx, handler in ipairs(events[event]) do
                 -- Safe call, error in one handler should not prevent
                 -- others to be run correctly
                 SwitchCtx(handler.ctx)
@@ -183,13 +183,17 @@ do
                 if not success then
                     print("[LUA]\t Error while dispatching event: " .. error)
                 end
+                -- Delete once handler
+                if handler.once then
+                    table.remove(events[event], idx)
+                end
             end
         end
 
         --
         -- Attaches a new handler to an event
         --
-        function self.On(event, fn, persistent)
+        local function on(event, fn, persistent, once)
             -- First time an event is registered
             if not events[event] then
                 events[event] = {}
@@ -200,8 +204,18 @@ do
             table.insert(events[event], {
                 ctx = GetCtx(),
                 fn  = fn,
-                persistent = persistent
+                persistent = persistent,
+                once = once
             })
+
+        end
+
+        function self.On(event, fn, persistent)
+            return on(event, fn, persistent, false)
+        end
+
+        function self.Once(event, fn, persistent)
+            return on(event, fn, persistent, true)
         end
 
         --
