@@ -46,7 +46,8 @@ setmetatable(Sensors, {
         -- Change cached state and emit event
         local function update(new_state)
             state = new_state
-            emit("Change", new_state)
+            emit("Edge", new_state)
+            emit(new_state and "Rising" else "Falling")
         end
 
         -- Debounce sensor state change

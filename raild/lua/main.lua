@@ -14,7 +14,7 @@ local slow_loco = false
 local round = 0
 local counter = false
 
-Sensors[22].On("Change", function(state)
+Sensors[22].On("Edge", function(state)
     if state then
         if counter then
             round = round + 1
@@ -27,7 +27,7 @@ Sensors[22].On("Change", function(state)
     end
 end)
 
-Sensors[17].On("Change", function(state)
+Sensors[17].On("Edge", function(state)
     if state then
         segment.Push()
     end
