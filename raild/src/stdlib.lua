@@ -313,6 +313,7 @@ do
 
     -- List of all defined timers
     local timers = {}
+    local softs = {}
     local soft_tid = 0
 
     -- Create a new timer that will fire for the first time after `initial`
@@ -346,31 +347,31 @@ do
         -- and save the context of this timer
         soft_tid = soft_tid + 1
         timers[tid] = { ctx = ctx, soft_tid = soft_tid }
-        timers[soft_tid] = tid
+        softs[soft_tid] = tid
 
         return soft_tid
     end
 
     local function cancelTimerInternal(tid)
         if not timers[tid] then return end
-        timers[timers[tid].soft_tid] = nil -- delete the soft tid entry
-        timers[tid] = nil                  -- delete the Lua reference
-        cancel_timer(tid)                  -- cancel the timer
-        unregister_timer(tid)              -- unregister the callback
+        softs[timers[tid].soft_tid] = nil -- delete the soft tid entry
+        timers[tid] = nil                 -- delete the Lua reference
+        cancel_timer(tid)                 -- cancel the timer
+        unregister_timer(tid)             -- unregister the callback
     end
 
     -- Cancel a not-yet-fired timer
     function CancelTimer(soft_tid)
-        if not timers[soft_tid] then return end
-        cancelTimerInternal(timers[soft_tid])
+        if not softs[soft_tid] then return end
+        cancelTimerInternal(softs[soft_tid])
     end
 
     -- Cleanup after automatic collection of one-time timers
     bind("DeleteTimer", function(tid)
         if not timers[tid] then return end
-        timers[timers[tid]] = nil -- deletes the soft tid entry
-        timers[tid] = nil         -- delete the Lua reference
-        unregister_timer(tid)     -- unregisters the callback
+        softs[timers[tid]] = nil -- deletes the soft tid entry
+        timers[tid] = nil        -- delete the Lua reference
+        unregister_timer(tid)    -- unregisters the callback
         -- There is no need to cancel the timer as this is
         -- an auto-collected timer already expired.
     end)
