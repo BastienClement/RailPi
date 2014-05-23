@@ -313,7 +313,6 @@ do
 
     -- List of all defined timers
     local timers = {}
-    local softs = {}
     local soft_tid = 0
 
     -- Create a new timer that will fire for the first time after `initial`
@@ -346,30 +345,35 @@ do
         -- Allocate a new soft id for this timer
         -- and save the context of this timer
         soft_tid = soft_tid + 1
-        timers[tid] = { ctx = ctx, soft_tid = soft_tid }
-        softs[soft_tid] = tid
+        timers[tid] = {
+            ["ctx"] = ctx,
+            ["tid"] = tid,
+            ["soft_tid"] = soft_tid
+        }
 
-        return soft_tid
+        return timers[tid]
     end
 
     local function cancelTimerInternal(tid)
         if not timers[tid] then return end
-        softs[timers[tid].soft_tid] = nil -- delete the soft tid entry
         timers[tid] = nil                 -- delete the Lua reference
         cancel_timer(tid)                 -- cancel the timer
         unregister_timer(tid)             -- unregister the callback
     end
 
     -- Cancel a not-yet-fired timer
-    function CancelTimer(soft_tid)
-        if not softs[soft_tid] then return end
-        cancelTimerInternal(softs[soft_tid])
+    function CancelTimer(timer)
+        if type(timer) ~= "table"
+        or not timers[timer.tid]
+        or timers[timer.tid].soft_tid ~= timer.soft_tid then
+            return
+        end
+        cancelTimerInternal(timer.tid)
     end
 
     -- Cleanup after automatic collection of one-time timers
     bind("DeleteTimer", function(tid)
         if not timers[tid] then return end
-        softs[timers[tid]] = nil -- deletes the soft tid entry
         timers[tid] = nil        -- delete the Lua reference
         unregister_timer(tid)    -- unregisters the callback
         -- There is no need to cancel the timer as this is
@@ -379,8 +383,8 @@ do
     -- Tracks context deallocations and cancel timers associated
     -- with these contexts
     RegisterDealloc(function(ctx)
-        for tid, tprops in pairs(timers) do
-            if tprops.ctx == ctx then
+        for tid, timer in pairs(timers) do
+            if timer.ctx == ctx then
                 cancelTimerInternal(tid)
             end
         end
