@@ -14,23 +14,19 @@ local slow_loco = false
 local round = 0
 local counter = false
 
-Sensors[22].On("Edge", function(state)
-    if state then
-        if counter then
-            round = round + 1
-            counter = false
-            print("Tour:", round)
-            RailMon.Send("Round", { count = round })
-        else
-            counter = true
-        end
+Sensors[22].On("Rising", function()
+    if counter then
+        round = round + 1
+        counter = false
+        print("Tour:", round)
+        RailMon.Send("Round", { count = round })
+    else
+        counter = true
     end
 end)
 
-Sensors[17].On("Edge", function(state)
-    if state then
-        segment.Push()
-    end
+Sensors[17].On("Rising", function()
+    segment.Push()
 end)
 
 Switches[2].On("EnterC", function()
