@@ -174,7 +174,7 @@ do
             if not events[event] then return end
 
             -- Loops over every handlers
-            for _, handler in ipairs(events[event]) do
+            for idx, handler in ipairs(events[event]) do
                 -- Safe call, error in one handler should not prevent
                 -- others to be run correctly
                 SwitchCtx(handler.ctx)
@@ -183,13 +183,17 @@ do
                 if not success then
                     print("[LUA]\t Error while dispatching event: " .. error)
                 end
+                -- Delete once handler
+                if handler.once then
+                    table.remove(events[event], idx)
+                end
             end
         end
 
         --
         -- Attaches a new handler to an event
         --
-        function self.On(event, fn, persistent)
+        local function on(event, fn, persistent, once)
             -- First time an event is registered
             if not events[event] then
                 events[event] = {}
@@ -200,8 +204,18 @@ do
             table.insert(events[event], {
                 ctx = GetCtx(),
                 fn  = fn,
-                persistent = persistent
+                persistent = persistent,
+                once = once
             })
+
+        end
+
+        function self.On(event, fn, persistent)
+            return on(event, fn, persistent, false)
+        end
+
+        function self.Once(event, fn, persistent)
+            return on(event, fn, persistent, true)
         end
 
         --
@@ -328,34 +342,35 @@ do
             RestoreCtx()
         end)
 
-        -- Save the context of this timer
+        -- Allocate a new soft id for this timer
+        -- and save the context of this timer
         soft_tid = soft_tid + 1
-        timers[tid] = soft_tid
+        timers[tid] = { ctx = ctx, soft_tid = soft_tid }
+        timers[soft_tid] = tid
 
-        return { tid = tid, soft = soft_tid }
+        return soft_tid
     end
 
     local function cancelTimerInternal(tid)
         if not timers[tid] then return end
-        timers[tid] = nil     -- deletes the Lua reference
-        cancel_timer(tid)     -- cancels the timer
-        unregister_timer(tid) -- unregisters the callback
+        timers[timers[tid].soft_tid] = nil -- delete the soft tid entry
+        timers[tid] = nil                  -- delete the Lua reference
+        cancel_timer(tid)                  -- cancel the timer
+        unregister_timer(tid)              -- unregister the callback
     end
 
     -- Cancel a not-yet-fired timer
-    function CancelTimer(timer)
-        if not timer then return end
-        local tid = timer.tid
-        if timers[tid] == timer.soft then
-            cancelTimerInternal(tid)
-        end
+    function CancelTimer(soft_tid)
+        if not timers[soft_tid] then return end
+        cancelTimerInternal(timers[soft_tid])
     end
 
     -- Cleanup after automatic collection of one-time timers
     bind("DeleteTimer", function(tid)
         if not timers[tid] then return end
-        timers[tid] = nil     -- deletes the Lua reference
-        unregister_timer(tid) -- unregisters the callback
+        timers[timers[tid]] = nil -- deletes the soft tid entry
+        timers[tid] = nil         -- delete the Lua reference
+        unregister_timer(tid)     -- unregisters the callback
         -- There is no need to cancel the timer as this is
         -- an auto-collected timer already expired.
     end)
@@ -363,8 +378,8 @@ do
     -- Tracks context deallocations and cancel timers associated
     -- with these contexts
     RegisterDealloc(function(ctx)
-        for tid, tctx in pairs(timers) do
-            if tctx == ctx then
+        for tid, tprops in pairs(timers) do
+            if tprops.ctx == ctx then
                 cancelTimerInternal(tid)
             end
         end

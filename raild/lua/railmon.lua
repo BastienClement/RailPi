@@ -83,7 +83,7 @@ end)
 -------------------------------------------------------------------------------
 -- Bindings to Sensors
 -------------------------------------------------------------------------------
-Sensors.On("Change", function(sen, s)
+Sensors.On("Edge", function(sen, s)
     emit("SensorChange", { id = sen.GetId(), state = s })
 end)
 

@@ -140,7 +140,7 @@ setmetatable(Switches, {
             locked = false
 
             -- Register handler
-            Sensors.On("Change", handler)
+            Sensors.On("Edge", handler)
 
             emit("Enable")
             return self
@@ -149,7 +149,7 @@ setmetatable(Switches, {
         -- Disable this switch
         function self.Disable()
             -- Remove binding to sensors
-            Sensors.Off("Change", handler)
+            Sensors.Off("Edge", handler)
 
             -- Cleanup potential timer
             CancelTimer(delay)
