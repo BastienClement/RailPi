@@ -107,22 +107,6 @@ void setup_lua(const char *main) {
 }
 
 /**
- * Sets the current script context
- */
-void lua_set_context(int fd) {
-    lua_pushnumber(L, fd);
-    lua_setfield(L, LUA_REGISTRYINDEX, "context_fd");
-}
-
-/**
- * Removes the script context
- */
-void lua_clear_context() {
-    lua_pushnil(L);
-    lua_setfield(L, LUA_REGISTRYINDEX, "context_fd");
-}
-
-/**
  * Runs a specific buffer of Lua code
  * Called from the TCP/IP API to run client code
  */
@@ -153,6 +137,14 @@ void lua_handle_timer(raild_event *event) {
 //---------------------------------------------------------------------------//
 
 /**
+ * Init event
+ */
+void lua_oninit() {
+    prepare_event("Init");
+    dispatch(0);
+}
+
+/**
  * Ready event
  * Fired ever time the RailHub sends a READY opcode
  */
@@ -172,11 +164,21 @@ void lua_ondisconnect() {
 }
 
 /**
+ * Power On/Off event
+ * Fired when power state status is updated
+ */
+void lua_onpower(bool state) {
+    prepare_event("Power");
+    lua_pushboolean(L, state);
+    dispatch(1);
+}
+
+/**
  * Sensor changed event
  * Fired when any of the 24 sensors changes state
  */
-void lua_onsensorchanged(int sensorid, bool state) {
-    prepare_event("SensorChanged");
+void lua_onsensorchange(int sensorid, bool state) {
+    prepare_event("SensorChange");
     lua_pushnumber(L, sensorid);
     lua_pushboolean(L, state);
     dispatch(2);
@@ -186,19 +188,11 @@ void lua_onsensorchanged(int sensorid, bool state) {
  * Switch changed event
  * Fired when any of the 8 switches changes state
  */
-void lua_onswitchchanged(int switchid, bool state) {
-    prepare_event("SwitchChanged");
+void lua_onswitchchange(int switchid, bool state) {
+    prepare_event("SwitchChange");
     lua_pushnumber(L, switchid);
     lua_pushboolean(L, state);
     dispatch(2);
-}
-
-/**
- * Init event
- */
-void lua_oninit() {
-    prepare_event("Init");
-    dispatch(0);
 }
 
 //---------------------------------------------------------------------------//
@@ -222,6 +216,23 @@ void lua_dealloc_context(int fd) {
     prepare_event_internal("DeallocContext");
     lua_pushnumber(L, fd);
     call(1, 0);
+}
+
+/**
+ * Sets the current script context
+ */
+void lua_switch_context(int fd) {
+    prepare_event_internal("SwitchContext");
+    lua_pushnumber(L, fd);
+    call(1, 0);
+}
+
+/**
+ * Removes the script context
+ */
+void lua_restore_context() {
+    prepare_event_internal("RestoreCtx");
+    call(0, 0);
 }
 
 /**
@@ -459,4 +470,3 @@ luaL_Reg raild_api[] = {
 void lualib_register() {
     luaL_register(L, NULL, raild_api);
 }
-

@@ -19,7 +19,7 @@ do
     bind("AllocContext", function(ctx, class)
         -- Check if context is not already allocated
         if ctxs[ctx] then
-            error("attempted to alloc an already allocated context: " .. ctx .. " " .. class)
+            error("attempt to alloc an already allocated context: " .. ctx .. " " .. class)
         end
 
         -- Allocate
@@ -30,7 +30,7 @@ do
     bind("DeallocContext", function(ctx)
         -- Check if context is allocated
         if not ctxs[ctx] then
-            error("attempted to dealloc a not allocated context: " .. ctx)
+            error("attempt to dealloc a not allocated context: " .. ctx)
         end
 
         -- Run cleaners
@@ -81,7 +81,7 @@ do
             ctxStack[#ctxStack + 1] = GetCtx()
             ctx = new_ctx
         else
-            error("attempted to switch to a forbidden context type")
+            error("attempt to switch to a forbidden context type")
         end
     end
 
@@ -94,9 +94,12 @@ do
             ctx = ctxStack[top]
             table.remove(ctxStack, top)
         else
-            error("attempted to restore the previous context despite an empty context stack")
+            error("attempt to restore the previous context despite an empty context stack")
         end
     end
+
+    bind("SwitchContext", SwitchCtx)
+    bind("RestoreCtx", RestoreCtx)
 end
 
 -------------------------------------------------------------------------------
@@ -147,96 +150,145 @@ do
 end
 
 -------------------------------------------------------------------------------
--- Events
+-- EventEmitter
 -------------------------------------------------------------------------------
 do
-    -- List of registered event handlers
-    local events = {}
+    -- List of all registered event emitters
+    local emitters = {}
 
-    --
-    -- Dispatch event to registered handlers
-    --
-    bind("DispatchEvent", function(event, ...)
-        -- This event has nothing registered to it
-        if not events[event] then return end
+    -- Set emitters as weak values
+    setmetatable(emitters, { ["__mode"] = "k"})
 
-        -- Loops over every handlers
-        for _, handler in ipairs(events[event]) do
-            -- Safe call, error in one handler should not prevent
-            -- others to be run correctly
-            SwitchCtx(handler.ctx)
-            local success, error = pcall(handler.fn, ...)
-            RestoreCtx()
-            if not success then
-                print("[LUA]\t Error while dispatching event: " .. error)
-            end
-        end
-    end)
+    function EventEmitter(self)
+        -- Optional parameter
+        self = self or {}
 
-    --
-    -- Attaches a new handler to an event
-    --
-    function On(event, fn, persistent)
-        -- First time an event is registered
-        if not events[event] then
-            events[event] = {}
-        end
+        -- List of registered event handlers
+        local events = {}
 
-        -- Adds this function to the event handler
-        -- table along with context informations
-        table.insert(events[event], {
-            ctx = GetCtx(),
-            fn  = fn,
-            persistent = persistent
-        })
-    end
+        --
+        -- Emits an event
+        --
+        function self.Emit(event, ...)
+            -- This event has nothing registered to it
+            if not events[event] then return end
 
-    --
-    -- Detach a function previously registered with On
-    --
-    -- If the fn argument is nil, disables every handlers
-    -- registered from the current context on this event
-    --
-    function Off(event, fn)
-        -- Nothing registered to this event, so obviously
-        -- nothing to remove...
-        if not events[event] then return end
-
-        -- Current script context
-        local ctx = GetCtx();
-
-        -- Check matching handler
-        for idx, handler in ipairs(events[event]) do
-            if fn then
-                if handler.fn == fn then
+            -- Loops over every handlers
+            for idx, handler in ipairs(events[event]) do
+                -- Safe call, error in one handler should not prevent
+                -- others to be run correctly
+                SwitchCtx(handler.ctx)
+                local success, error = pcall(handler.fn, ...)
+                RestoreCtx()
+                if not success then
+                    print("[LUA]\t Error while dispatching event: " .. error)
+                end
+                -- Delete once handler
+                if handler.once then
                     table.remove(events[event], idx)
                 end
-            elseif handler.ctx == ctx then
-                table.remove(events[event], idx)
             end
         end
-    end
 
-    --
-    -- Function called when a file descriptor is deallocated
-    --
-    -- This functions checks every handlers and removes
-    -- those registered from that context
-    --
-    RegisterDealloc(function(ctx)
-        for _, handlers in pairs(events) do
-            for idx, handler in ipairs(handlers) do
-                if handler.ctx == ctx then
-                    if handler.persistent then
-                        -- Handler is persistant, inherited by ctx 0
-                        handler.ctx = 0
-                    else
-                        table.remove(handlers, idx)
+        --
+        -- Attaches a new handler to an event
+        --
+        local function on(event, fn, persistent, once)
+            -- First time an event is registered
+            if not events[event] then
+                events[event] = {}
+            end
+
+            -- Adds this function to the event handler
+            -- table along with context informations
+            table.insert(events[event], {
+                ctx = GetCtx(),
+                fn  = fn,
+                persistent = persistent,
+                once = once
+            })
+
+        end
+
+        function self.On(event, fn, persistent)
+            return on(event, fn, persistent, false)
+        end
+
+        function self.Once(event, fn, persistent)
+            return on(event, fn, persistent, true)
+        end
+
+        --
+        -- Detach a function previously registered with On
+        --
+        -- If the fn argument is nil, disables every handlers
+        -- registered from the current context on this event
+        --
+        function self.Off(event, fn)
+            -- Nothing registered to this event, so obviously
+            -- nothing to remove...
+            if not events[event] then return end
+
+            -- Current script context
+            local ctx = GetCtx();
+
+            -- Check matching handler
+            for idx, handler in ipairs(events[event]) do
+                if fn then
+                    if handler.fn == fn then
+                        table.remove(events[event], idx)
+                    end
+                elseif handler.ctx == ctx then
+                    table.remove(events[event], idx)
+                end
+            end
+        end
+
+        --
+        -- Function called when a file descriptor is deallocated
+        --
+        -- This functions checks every handlers and removes those
+        -- registered from that context
+        --
+        emitters[self] = function(ctx)
+            for _, handlers in pairs(events) do
+                for idx, handler in ipairs(handlers) do
+                    if handler.ctx == ctx then
+                        if handler.persistent then
+                            -- Handler is persistent, inherited by ctx 0
+                            handler.ctx = 0
+                        else
+                            table.remove(handlers, idx)
+                        end
                     end
                 end
             end
         end
+
+        return self
+    end
+
+    --
+    -- Cleanup every emitters
+    --
+    RegisterDealloc(function(ctx)
+        for emitter, cleanup in pairs(emitters) do
+            cleanup(ctx)
+        end
     end)
+end
+
+-------------------------------------------------------------------------------
+-- C-Events
+-------------------------------------------------------------------------------
+do
+    -- EventEmitter object for C-events
+    local cEvents = EventEmitter()
+
+    -- Global API
+    bind("DispatchEvent", cEvents.Emit)
+    On = cEvents.On
+    Off = cEvents.Off
 end
 
 -------------------------------------------------------------------------------
@@ -261,6 +313,7 @@ do
 
     -- List of all defined timers
     local timers = {}
+    local soft_tid = 0
 
     -- Create a new timer that will fire for the first time after `initial`
     -- milliseconds and then every `interval` milliseconds, calling the
@@ -290,14 +343,20 @@ do
         end)
 
         -- Save the context of this timer
-        timers[tid] = ctx
+        soft_tid = soft_tid + 1
+        timers[tid] = soft_tid
 
-        return tid
+        return { tid = tid, soft = soft_tid }
     end
 
     -- Cancel a not-yet-fired timer
-    function CancelTimer(tid)
-        if not timers[tid] then return end
+    function CancelTimer(timer)
+        if not timer then return end
+        local tid = timer.tid
+        if not timers[tid]
+        or timers[tid] ~= timer.soft then
+            return
+        end
         timers[tid] = nil     -- deletes the Lua reference
         cancel_timer(tid)     -- cancels the timer
         unregister_timer(tid) -- unregisters the callback

@@ -1,42 +1,89 @@
 * {
-	margin: 0;
-	padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
 html, body {
-	height: 100%;
-	width: 100%;
+    height: 100%;
+    width: 100%;
 }
 
 body {
-	background: #0050a2;
-	background: url(background_cube.jpg) center center;
+    background: #0050a2;
+    display: flex;
+    font-family: "Helvetica";
+    font-size: 18px;
+    /*background: url(background_cube.jpg) center center;*/
 }
 
 #screen {
-	position: absolute;
-	top: 20px;
-	left: 20px;
-	right: 20px;
-	bottom: 20px;
-	background: rgba(0,0,0,0.5);
-	box-shadow: 0px 0px 10px rgba(0,0,0,0.4);
-	color: #FFF;
+    position: relative;
+    width: 1320px;
+    height: 730px;
+    margin: auto;
+    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.4);
+    color: #FFF;
+    overflow: hidden;
 }
 
 h1 {
-	font-size: 56px;
-	font-family: Arial;
-	letter-spacing: 0.1em;
-	font-variant: small-caps;
-	position: absolute;
-	top: 20px;
-	left: 20px;
+    font-size: 56px;
+    font-family: Arial;
+    letter-spacing: 0.1em;
+    font-variant: small-caps;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+#logo {
+    width: 300px;
+    position: absolute;
+    top: 20px;
+    left: 20px;
 }
 
 #map {
-	position: absolute;
-	top: 50%;
-	margin-top: -310px;
-	left: 0px;
+    position: absolute;
+    top: 50px;
+    left: 50px;
+}
+
+#clock_canvas {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 300px;
+}
+
+#status {
+    position: absolute;
+    bottom: 50px;
+    left: 50px;
+    list-style: none;
+}
+
+#status li {
+    margin-top: 20px;
+}
+
+.led {
+    display: inline-block;
+    height: 1em;
+    width: 1em;
+    border-radius: 1em;
+    position: relative;
+    top: 2px;
+    margin-right: 5px;
+}
+
+.led.on {
+    background-color: #0F0;
+    box-shadow: 0px 0px 10px rgba(0, 255, 0, 0.7);
+}
+
+.led.off {
+    background-color: #F00;
+    box-shadow: 0px 0px 5px rgba(255, 0, 0, 1);
 }
