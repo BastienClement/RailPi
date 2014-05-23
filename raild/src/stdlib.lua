@@ -342,31 +342,31 @@ do
             RestoreCtx()
         end)
 
-        -- Save the context of this timer
+        -- Allocate a new soft id for this timer
+        -- and save the context of this timer
         soft_tid = soft_tid + 1
         timers[tid] = soft_tid
+        timers[soft_tid] = tid
 
-        return { tid = tid, soft = soft_tid }
+        return soft_tid
     end
 
     -- Cancel a not-yet-fired timer
-    function CancelTimer(timer)
-        if not timer then return end
-        local tid = timer.tid
-        if not timers[tid]
-        or timers[tid] ~= timer.soft then
-            return
-        end
-        timers[tid] = nil     -- deletes the Lua reference
-        cancel_timer(tid)     -- cancels the timer
-        unregister_timer(tid) -- unregisters the callback
+    function CancelTimer(soft_tid)
+        if not timers[soft_tid] then return end
+        local timer = timers[soft_tid]
+        timers[timer] = nil     -- deletes the Lua reference
+        timers[soft_tid] = nil
+        cancel_timer(timer)     -- cancels the timer
+        unregister_timer(timer) -- unregisters the callback
     end
 
     -- Cleanup after automatic collection of one-time timers
     bind("DeleteTimer", function(tid)
         if not timers[tid] then return end
-        timers[tid] = nil     -- deletes the Lua reference
-        unregister_timer(tid) -- unregisters the callback
+        timers[timers[tid]] = nil -- deletes the Lua reference
+        timers[tid] = nil
+        unregister_timer(tid)     -- unregisters the callback
         -- There is no need to cancel the timer as this is
         -- an auto-collected timer already expired.
     end)
