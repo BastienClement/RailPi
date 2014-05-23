@@ -335,17 +335,20 @@ do
         return { tid = tid, soft = soft_tid }
     end
 
+    local function cancelTimerInternal(tid)
+        if not timers[tid] then return end
+        timers[tid] = nil     -- deletes the Lua reference
+        cancel_timer(tid)     -- cancels the timer
+        unregister_timer(tid) -- unregisters the callback
+    end
+
     -- Cancel a not-yet-fired timer
     function CancelTimer(timer)
         if not timer then return end
         local tid = timer.tid
-        if not timers[tid]
-        or timers[tid] ~= timer.soft then
-            return
+        if timers[tid] == timer.soft then
+            cancelTimerInternal(tid)
         end
-        timers[tid] = nil     -- deletes the Lua reference
-        cancel_timer(tid)     -- cancels the timer
-        unregister_timer(tid) -- unregisters the callback
     end
 
     -- Cleanup after automatic collection of one-time timers
@@ -362,7 +365,7 @@ do
     RegisterDealloc(function(ctx)
         for tid, tctx in pairs(timers) do
             if tctx == ctx then
-                CancelTimer(tid)
+                cancelTimerInternal(tid)
             end
         end
     end)
