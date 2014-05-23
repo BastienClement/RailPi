@@ -24,7 +24,7 @@ end
 -- Chrono helper
 --
 function Chrono(window)
-    window = window or 5
+    window = window or 10
 
     local self = {}
     local start = Time()
