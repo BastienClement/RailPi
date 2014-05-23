@@ -9,7 +9,9 @@ Switches[5].Enable(5,  4, 21)
 
 local segment = Chrono()
 local diff = Chrono()
+local mayday_diff = Chrono()
 local ok = true
+local mayday = false
 local slow_loco = false
 local round = 0
 local counter = false
@@ -31,26 +33,35 @@ end)
 
 Switches[2].On("EnterC", function()
     local fast
-    if segment.Shift() < segment.Mean() then
-        print("Fast")
-        if diff.Time() < (segment.Mean() * 1.5) then
+    local t = segment.Shift()
+    if t < segment.Mean() then
+        print("Fast", t, segment.Mean())
+        if mayday then
+            print("Mayday!")
+        elseif diff.Time() < (segment.Mean() * 2) then
             print("Too close")
             ok = false
         else
             print("It's okay!")
             ok = true
         end
-        Switches[2].SetState(ok)
+        Switches[2].SetState(ok or mayday)
     else
-        print("Slow")
+        if mayday then
+            print("Mayday!")
+        else
+            print("Slow", t, segment.Mean())
+        end
         diff.Reset()
         slow_loco = true
-        Switches[2].SetState(true)
+        Switches[2].SetState(true and not mayday)
     end
 end)
 
 Switches[4].On("EnterC", function()
-    if slow_loco then
+    if mayday then
+        Switches[4].SetState(true)
+    elseif slow_loco then
         Switches[4].SetState(not ok)
         slow_loco = false
     else
