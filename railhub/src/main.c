@@ -21,7 +21,7 @@ char putchar_raw(char c)  {
 
 sbit led = P1^6;
 
-void handle_input() reentrant {
+void handle_input() {
 	switch(_getkey()) {
 		//
 		// Sensors
@@ -132,7 +132,7 @@ void watch_sensors() {
 //-----------------------------------------------------------------------------
 // MAIN Routine
 //-----------------------------------------------------------------------------
-void main(void) {
+void main() {
 	WDTCN = 0xFF;
 	WATCHDOG;
 

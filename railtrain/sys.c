@@ -1,4 +1,4 @@
-#include <c8051f020.h>
+#include <c8051f330.h>
 #include "sys.h"
 
 //-----------------------------------------------------------------------------
@@ -8,7 +8,7 @@
 // This routine initializes the system clock to use an 22.1184MHz crystal
 // as its clock source.
 //
-void SYSCLK_Init() {
+void SYSCLK_Init(void) {
 	int i;         // delay counter
 	OSCXCN = 0x67; // start external oscillator with
 	               // 22.1184MHz crystal
@@ -27,10 +27,10 @@ void SYSCLK_Init() {
 //
 // Configure the Crossbar and GPIO ports
 //
-void PORT_Init() {
+void PORT_Init(void) {
 	XBR0 |= 0x04;    // Enable UART0
 	XBR2 |= 0xC0;    // Enable crossbar and disable weak pull-ups
-	P0MDOUT = 0x05;  // enable TX0 / TX1 as push-pull output
+	P0MDOUT = 0x01;  // enable TX0 as a push-pull output
 	P1MDOUT = 0xFF;
 	P2MDOUT = 0xFF;
 	P74OUT  = 0x00;
@@ -42,10 +42,9 @@ void PORT_Init() {
 //
 // Configure the UART0 using Timer1, for <baudrate> and 8-N-1.
 //
-void UART0_Init() {
+void UART0_Init(void) {
 	SCON0 = 0x50;                // SCON0: mode 1, 8-bit UART, enable RX
-	TMOD &= 0x0F;                // TMOD: diasable timer 1
-	TMOD |= 0x20;                // timer 1, mode 2, 8-bit reload
+	TMOD = 0x20;                 // TMOD: timer 1, mode 2, 8-bit reload
 	TH1 = -(SYSCLK/BAUDRATE/16); // set Timer1 reload value for baudrate
 	TR1 = 1;                     // start Timer1
 	CKCON |= 0x10;               // Timer1 uses SYSCLK as time base

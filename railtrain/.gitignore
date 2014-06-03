@@ -1,0 +1,10 @@
+*.uvgui*
+*.uvopt
+*.bak
+ExtDll.iex
+main.LST
+main.OBJ
+sys.LST
+railtrain*
+!railtrain.uvproj
+!railtrain.plg
