@@ -41,6 +41,6 @@ typedef bit bool;
 // Prototypes
 //-----------------------------------------------------------------------------
 
-void SYSCLK_Init(void);
-void PORT_Init(void);
-void UART0_Init(void);
+void SYSCLK_Init();
+void PORT_Init();
+void UART0_Init();
